@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import logging
-import matchminer.data_model
+import data_model
 
 ## parameters
 
@@ -95,7 +95,7 @@ ITEM_METHODS = ['GET', 'PUT', 'DELETE']
 
 ## models
 user = {
-    "schema": matchminer.data_model.user_schema,
+    "schema": data_model.user_schema,
     'datasource': {
         'projection': {
             'token': 0,
@@ -107,14 +107,14 @@ user = {
 }
 
 team = {
-    "schema": matchminer.data_model.team,
+    "schema": data_model.team,
     "allowed_read_roles": ["admin", "service", "user"],
     "allowed_write_roles": ["admin", "service"],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE']
 }
 
 rule = {
-    'schema': matchminer.data_model.filter_schema,
+    'schema': data_model.filter_schema,
     'datasource': {
         'projection': {'filter_hash': 0}
     },
@@ -124,35 +124,35 @@ rule = {
 }
 
 clinical = {
-    'schema': matchminer.data_model.clinical_schema,
+    'schema': data_model.clinical_schema,
     "allowed_read_roles": ["admin", "service", "user"],
     "allowed_write_roles": ["admin", "service"],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE']
  }
 
 genomic = {
-    'schema': matchminer.data_model.genomic_schema,
+    'schema': data_model.genomic_schema,
     "allowed_read_roles": ["admin", "service", "user"],
     "allowed_write_roles": ["admin", "service"],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE']
 }
 
 match = {
-    'schema': matchminer.data_model.match_schema,
+    'schema': data_model.match_schema,
     "allowed_read_roles": ["admin", "service", "user"],
     "allowed_write_roles": ["admin", "service", "user"],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE']
 }
 
 hipaa_transaction = {
-    'schema': matchminer.data_model.hipaa_transaction,
+    'schema': data_model.hipaa_transaction,
     "allowed_read_roles": ["admin"],
     "allowed_write_roles": ["admin"],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE']
 }
 
 status = {
-    'schema': matchminer.data_model.status_schema,
+    'schema': data_model.status_schema,
     'datasource': {
         'default_sort': [('last_updated', -1)]
     },
@@ -162,7 +162,7 @@ status = {
 }
 
 trial = {
-    'schema': matchminer.data_model.parent_schema,
+    'schema': data_model.parent_schema,
     'allow_unknown': False,
     "allowed_read_roles": ["admin", "service", "user", "curator"],
     "allowed_write_roles": ["admin", "curator"],
@@ -171,7 +171,7 @@ trial = {
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE']
 }
 response = {
-    'schema': matchminer.data_model.response_schema,
+    'schema': data_model.response_schema,
     'allow_unknown': False,
     "allowed_read_roles": ["admin", "service", "curator"],
     "allowed_write_roles": ["admin", "curator"],
@@ -180,7 +180,7 @@ response = {
 }
 
 email = {
-    'schema': matchminer.data_model.email_schema,
+    'schema': data_model.email_schema,
     'allow_unknown': False,
     "allowed_read_roles": ["admin", "service"],
     "allowed_write_roles": ["admin", "service"],
@@ -188,7 +188,7 @@ email = {
 }
 
 statistics = {
-    'schema': matchminer.data_model.dashboard_schema,
+    'schema': data_model.dashboard_schema,
     'allow_unknown': True,
     "allowed_read_roles": ["admin", "service"],
     "allowed_write_roles": ["admin", "service"],
@@ -196,7 +196,7 @@ statistics = {
 }
 
 public_stats = {
-    'schema': matchminer.data_model.public_stats_schema,
+    'schema': data_model.public_stats_schema,
     'allow_unknown': False,
     'allowed_read_roles': ["admin", "service", "curator", "user"],
     'allowed_write_roles': ["admin", "service"],
@@ -206,7 +206,7 @@ public_stats = {
 }
 
 trial_match = {
-    'schema': matchminer.data_model.trial_match_schema,
+    'schema': data_model.trial_match_schema,
     'allow_unknown': False,
     'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
     'allowed_write_roles': ["admin", "service", "oncologist", "cti"],
@@ -214,7 +214,7 @@ trial_match = {
 }
 
 negative_genomic = {
-    'schema': matchminer.data_model.negative_genomic_schema,
+    'schema':    data_model.negative_genomic_schema,
     'allow_unknown': False,
     "allowed_read_roles": ["admin", "service", "user"],
     "allowed_write_roles": ["admin", "service"],
@@ -222,7 +222,7 @@ negative_genomic = {
 }
 
 patient_view = {
-    'schema': matchminer.data_model.patient_view_schema,
+    'schema': data_model.patient_view_schema,
     'allow_unknown': True,
     "allowed_read_roles": ["admin", "service", "user", "oncologist", "cti"],
     "allowed_write_roles": ["admin", "service", "user", "oncologist", "cti"],
@@ -230,14 +230,14 @@ patient_view = {
 }
 
 enrollment = {
-    'schema': matchminer.data_model.enrollment_schema,
+    'schema': data_model.enrollment_schema,
     'allowed_read_roles': ["admin", "service", "user"],
     'allowed_write_roles': ["admin", "service", "user"],
     'item_methods': ['GET']
 }
 
 gikb = {
-    'schema': matchminer.data_model.gikb_schema,
+    'schema': data_model.gikb_schema,
     'allow_unknown': True,
     'allowed_read_roles': ["admin", "service", "user"],
     'allowed_write_roles': ["admin", "service", "user"],
@@ -245,7 +245,7 @@ gikb = {
 }
 
 gi_gold_standard_truth = {
-    'schema': matchminer.data_model.gi_gold_standard_truth,
+    'schema': data_model.gi_gold_standard_truth,
     'allowed_read_roles': ["admin", "service", "user"],
     'allowed_write_roles': ["admin", "service"],
     'item_methods': ['GET', 'PUT', 'DELETE']
