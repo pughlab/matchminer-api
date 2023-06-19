@@ -1,5 +1,5 @@
-git+https://github.com/ethansiegl/oncotreenx.git@0fad6f4091970476d328bba57740722afc88db42
-git+https://github.com/dfci/matchengine-V2.git@33297fc052ebe299489cb9edbcf0bbbdd85ba84d
+git+https://github.com/ethansiegl/oncotreenx.git
+git+https://github.com/pughlab/matchengine-V2.git@genomic_match_all
 git+https://github.com/crappycrypto/wincrypto.git@7b87ba7080a1e594e6164b82a331d03cf256905d#egg=wincrypto
 Cerberus==1.2
 Eve==1.1.5

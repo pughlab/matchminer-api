@@ -74,7 +74,7 @@ markupsafe==2.0.1
     # via
     #   -r requirements.in
     #   jinja2
-matchengine-v2 @ git+https://github.com/dfci/matchengine-V2.git@33297fc052ebe299489cb9edbcf0bbbdd85ba84d
+matchengine-v2 @ git+https://github.com/pughlab/matchengine-V2.git@genomic_match_all
     # via -r requirements.in
 mattermostdriver==6.2.0
     # via -r requirements.in
@@ -95,7 +95,7 @@ numpy==1.23.3
     # via pandas
 oauth2client==2.0.2
     # via -r requirements.in
-oncotreenx @ git+https://github.com/ethansiegl/oncotreenx.git@0fad6f4091970476d328bba57740722afc88db42
+oncotreenx @ git+https://github.com/ethansiegl/oncotreenx.git
     # via -r requirements.in
 packaging==21.3
     # via build
