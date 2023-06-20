@@ -23,8 +23,10 @@ def sort_trial_matches(trial_matches):
 
         # get status of protocols. if trial is closed, don't count in ranking
         query = {"protocol_no": {"$in": [item['protocol_no'] for item in trial_matches['_items']]}}
-        protocols = list(db.trial.find(query, {"_summary.status.value": 1, "protocol_no": 1}))
-        protocol_statuses = {p['protocol_no']:p['_summary']['status'][0]['value'].lower() for p in protocols}
+        # protocols = list(db.trial.find(query, {"_summary.status.value": 1, "protocol_no": 1}))
+        # protocol_statuses = {p['protocol_no']:p['_summary']['status'][0]['value'].lower() for p in protocols}
+        protocols = list(db.trial.find(query, {"status": 1, "protocol_no": 1}))
+        protocol_statuses = {p['protocol_no']: p['status'].lower() for p in protocols}
 
         trial_matches['_items'] = sorted(trial_matches['_items'], key=lambda x: (tuple(x['sort_order'][:-1]) + (1.0 / x['sort_order'][-1],)))
         for match in trial_matches['_items']:
