@@ -4,7 +4,7 @@ import datetime
 import base64
 import threading
 
-from flask import Blueprint, current_app as app
+from flask import Blueprint, current_app as app, jsonify
 from flask import Response, request, render_template, redirect, session, make_response
 from flask_cors import CORS
 from urllib.parse import urlparse
@@ -16,7 +16,7 @@ import oncotreenx
 from requests import post, get
 from requests.auth import HTTPBasicAuth
 
-from matchminer import settings, database
+from matchminer import settings, database, load
 from matchminer import data_model
 import matchminer.miner
 from matchminer.elasticsearch import reset_elasticsearch
@@ -642,6 +642,25 @@ def get_panel():
                     mimetype="application/json")
 
     return resp
+
+
+@blueprint.route('/api/load', methods=['POST'])
+def load_trial():
+    if request.json and 'trial_list' in request.json:
+        trial_list = request.json['trial_list']
+        trial_load_input = load.LoadTrialInput('json', trial_list)
+        load.load(trial_load_input)
+        # Return a 204 No Content response
+        success_response = make_response('')
+        success_response.status_code = 204
+        return success_response
+    else:
+        response_data = {
+            'message': 'Missing required field: trial_list'
+        }
+        failed_response = make_response(jsonify(response_data), 400)
+        return response
+
 
 def init_saml_auth(req):
     # load based on production information.
