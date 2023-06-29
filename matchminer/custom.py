@@ -893,7 +893,7 @@ def metadata():
     return resp
 
 
-@blueprint.route('/api/ctims_trial_match2', methods=['GET'])
+@blueprint.route('/api/ctims_trial_summary', methods=['GET'])
 def getLatestResultOfAllTrialsWithCounts():
     # in trial_match collection, find all the records grouped by protocol_no, and get the latest of _updated
     # return an array of unique protocol_no where it has the latest _updated, and the count of the records
