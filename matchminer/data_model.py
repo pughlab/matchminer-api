@@ -1673,6 +1673,25 @@ trial_match_schema = {
     'is_disabled': {'type': 'boolean', 'required': False}
 }
 
+ctims_trial_match_schema = {
+	'arm_description': {'type': 'string'},
+	'studyid': {'type': 'string'},
+    'mrn': {'type': 'string'},
+    'sample_id': {'type': 'string'},
+    'protocol_no': {'type': 'string'},
+    'vital_status': {'type': 'string', 'allowed': ['alive', 'deceased'], 'nullable': True},
+    'gender': {'type': 'string'},
+    'age': {'type': 'string'},
+    'oncotree_primary_diagnosis_name': {'type': 'string', 'nullable': True},
+    'her2_status': {'type': 'string'},
+    'er_status': {'type': 'string'},
+    'pr_status': {'type': 'string'},
+    'genomic_alteration': {'type': 'string', 'readonly': True},
+    'true_hugo_symbol': {'type': 'string', 'nullable': True},
+    'variant_category': {'type': 'string', 'nullable': True, 'allowed': ['MUTATION', 'CNV', 'SV']},
+    'mutation_effect': {'type': 'string'},
+}
+
 negative_genomic_schema = {
     'clinical_id': {'type': 'objectid', 'data_relation': {'resource': 'clinical'}, 'required': True},
     'sample_id': {'type': 'string', 'required': True},

@@ -211,6 +211,17 @@ trial_match = {
     'item_methods': ['GET']
 }
 
+ctims_trial_match = {
+    'schema': matchminer.data_model.ctims_trial_match_schema,
+    'datasource': {
+        'source': 'trial_match'
+    },
+    'allow_unknown': False,
+    'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
+    'allowed_write_roles': ["admin", "service", "oncologist", "cti"],
+    'item_methods': ['GET']
+}
+
 negative_genomic = {
     'schema': matchminer.data_model.negative_genomic_schema,
     'allow_unknown': False,
@@ -260,6 +271,7 @@ DOMAIN = {
     'statistics': statistics,
     'public_stats': public_stats,
     'trial_match': trial_match,
+    'ctims_trial_match': ctims_trial_match,
     'negative_genomic': negative_genomic,
     'patient_view': patient_view,
     'enrollment': enrollment,

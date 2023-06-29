@@ -8,7 +8,7 @@ from flask import Blueprint, current_app as app
 from flask import Response, request, render_template, redirect, session, make_response
 from flask_cors import CORS
 from urllib.parse import urlparse
-from bson import ObjectId
+from bson import ObjectId, SON
 
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 import simplejson as json
@@ -19,6 +19,7 @@ from requests.auth import HTTPBasicAuth
 from matchminer import settings, database
 from matchminer import data_model
 import matchminer.miner
+from matchminer.custom_date import DateTimeEncoder
 from matchminer.elasticsearch import reset_elasticsearch
 from matchminer.miner import _count_matches_by_filter
 from matchminer.settings import *
@@ -889,4 +890,79 @@ def metadata():
         resp.headers['Content-Type'] = 'text/xml'
     else:
         resp = make_response(errors.join(', '), 500)
+    return resp
+
+
+@blueprint.route('/api/ctims_trial_match2', methods=['GET'])
+def getLatestResultOfAllTrialsWithCounts():
+    # in trial_match collection, find all the records grouped by protocol_no, and get the latest of _updated
+    # return an array of unique protocol_no where it has the latest _updated, and the count of the records
+
+    # get the db
+    db = app.data.driver.db
+
+    # get the collection
+    collection = db['trial_match']
+
+    # Query the collection
+    pipeline = [
+        {
+            "$sort": SON([("protocol_no", 1), ("_updated", -1)])
+        },
+        {
+            "$group": {
+                "_id": "$protocol_no",
+                "last_updated": {"$first": "$_updated"},
+            }
+        },
+        {
+            "$lookup": {
+                "from": "trial_match",
+                "let": {"protocol_no": "$_id", "last_updated": "$last_updated"},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$protocol_no", "$$protocol_no"]},
+                                    {"$eq": ["$_updated", "$$last_updated"]}
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "$count": "count"
+                    }
+                ],
+                "as": "result"
+            }
+        },
+        {
+            "$unwind": "$result"
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "protocol_no": "$_id",
+                "_updated": "$last_updated",
+                "count": "$result.count"
+            }
+        }
+    ]
+
+    result = list(collection.aggregate(pipeline))
+
+    # Process the results
+    unique_protocol_numbers = []
+    for doc in result:
+        print('abc', doc)
+        unique_protocol_numbers.append(doc)
+
+
+    # encode response.
+    data = json.dumps({'values': unique_protocol_numbers}, cls=DateTimeEncoder)
+    resp = Response(response=data,
+                    status=200,
+                    mimetype="application/json")
+
     return resp
