@@ -645,7 +645,7 @@ def get_panel():
     return resp
 
 
-@blueprint.route('/api/load', methods=['POST'])
+@blueprint.route('/api/load_trial', methods=['POST'])
 def load_trial():
     if request.json and 'trial_list' in request.json:
         trial_list = request.json['trial_list']
