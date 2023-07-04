@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.8-slim-buster
 
 # Install packages needed to compile dependencies:
 RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && apt-get install -y \
@@ -15,10 +15,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && apt-get insta
 # We do this partly because compiling is not reproducible, creating pointless diffs in images,
 # and partly to reduce image size.
 ENV PIP_NO_CACHE_DIR=1 PIP_NO_COMPILE=no
+ENV SECRETS_JSON=secrets_json_dev.json
 RUN mkdir /matchminerAPI
 
 # Install requirements:
-COPY ./requirements.txt /matchminerAPI/requirements.txt
+COPY requirements.txt /matchminerAPI/requirements.txt
 WORKDIR /matchminerAPI
 RUN pip install -r requirements.txt
 
