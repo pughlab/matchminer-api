@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from argparse import Namespace
+from typing import List
 
 import pymongo
 import yaml
@@ -111,7 +112,7 @@ def load_trials_json(args: Namespace, db_rw):
 ##################
 # util functions
 ##################
-def load_from_memory(db_rw, json_list: list[dict], filetype: str):
+def load_from_memory(db_rw, json_list: List[dict], filetype: str):
     for data in json_list:
         if is_valid_single_json_dict(data):
             for key in list(data.keys()):

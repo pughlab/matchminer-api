@@ -36,8 +36,10 @@ RUN mkdir -p /bytecode
 ENV PYTHONPYCACHEPREFIX=/bytecode
 
 # Expose and bind to port 80:
-EXPOSE 80
-CMD gunicorn wsgi:app --bind=0.0.0.0:80
+#EXPOSE 80
+#CMD gunicorn wsgi:app --bind=0.0.0.0:80
 
 # Copy over source files:
 COPY . /matchminerAPI/
+
+CMD python pymm_run.py serve --no-auth
