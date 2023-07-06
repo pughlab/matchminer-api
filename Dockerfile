@@ -15,7 +15,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && apt-get insta
 # We do this partly because compiling is not reproducible, creating pointless diffs in images,
 # and partly to reduce image size.
 ENV PIP_NO_CACHE_DIR=1 PIP_NO_COMPILE=no
-ENV SECRETS_JSON=secrets_json_dev.json
+
 RUN mkdir /matchminerAPI
 
 # Install requirements:
@@ -41,5 +41,16 @@ ENV PYTHONPYCACHEPREFIX=/bytecode
 
 # Copy over source files:
 COPY . /matchminerAPI/
+
+WORKDIR /matchminerAPI/matchengineV2
+RUN pip install .
+
+RUN pip --no-input uninstall --yes bson
+RUN pip --no-input uninstall --yes pymongo
+RUN pip install 'pymongo==3.10'
+
+WORKDIR /matchminerAPI
+
+ENV SECRETS_JSON=/matchminerAPI/secrets_json_dev.json
 
 CMD python pymm_run.py serve --no-auth
