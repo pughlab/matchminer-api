@@ -16,7 +16,8 @@ import oncotreenx
 from requests import post, get
 from requests.auth import HTTPBasicAuth
 
-from matchminer import settings, database, load
+from matchminer import settings, database
+from matchengineV2.matchengine.internals import load
 from matchminer import data_model
 import matchminer.miner
 from matchminer.custom_date import DateTimeEncoder
@@ -649,8 +650,10 @@ def get_panel():
 def load_trial():
     if request.json and 'trial_list' in request.json:
         trial_list = request.json['trial_list']
-        trial_load_input = load.LoadTrialInput('json', trial_list)
-        load.load(trial_load_input)
+        # trial_load_input = load.LoadTrialInput('json', trial_list)
+        # load.load(trial_load_input)
+        load.load_from_variable(trial_list)
+
         # Return a 204 No Content response
         success_response = make_response('')
         success_response.status_code = 204
