@@ -4,6 +4,8 @@ import datetime
 import base64
 import threading
 
+from werkzeug.utils import secure_filename
+
 from flask import Blueprint, current_app as app, jsonify
 from flask import Response, request, render_template, redirect, session, make_response
 from flask_cors import CORS
@@ -663,8 +665,78 @@ def load_trial():
             'message': 'Missing required field: trial_list'
         }
         failed_response = make_response(jsonify(response_data), 400)
-        return response
+        return failed_response
 
+@blueprint.route('/api/load_clinical', methods=['POST'])
+def load_clinical():
+    if request.files and 'clinical_file' in request.files:
+        clinical_file = request.files['clinical_file']
+
+        #  check if the file type is csv
+        if clinical_file.filename.endswith('.csv'):
+            # Use the Werkzeug utility function 'secure_filename' to ensure a safe filename
+            secure_path = secure_filename(clinical_file.filename)
+
+            # create directory is not exist
+            if not os.path.exists('clinical_uploads'):
+                os.makedirs('clinical_uploads')
+
+            clinical_file_path = os.path.join('clinical_uploads', secure_path)
+            clinical_file.save(clinical_file_path)
+            load.load_clinical_via_api(clinical_file_path)
+            # delete file
+            os.remove(clinical_file_path)
+            # Return a 204 No Content response
+            success_response = make_response('')
+            success_response.status_code = 204
+            return success_response
+        else:
+            response_data = {
+                'message': 'File type must be csv and key must be clinical_file'
+            }
+            failed_response = make_response(jsonify(response_data), 400)
+            return failed_response
+
+
+@blueprint.route('/api/load_genomic', methods=['POST'])
+def load_genomic():
+    if request.files and 'genomic_file' in request.files:
+        genomic_file = request.files['genomic_file']
+
+        #  check if the file type is csv
+        if genomic_file.filename.endswith('.csv'):
+            # Use the Werkzeug utility function 'secure_filename' to ensure a safe filename
+            secure_path = secure_filename(genomic_file.filename)
+
+            # create directory is not exist
+            if not os.path.exists('genomic_uploads'):
+                os.makedirs('genomic_uploads')
+
+            genomic_file_path = os.path.join('genomic_uploads', secure_path)
+            genomic_file.save(genomic_file_path)
+            try:
+                load.load_genomic_via_api(genomic_file_path)
+            except RuntimeError as e:
+                # delete file
+                os.remove(genomic_file_path)
+                response_data = {
+                    'message': str(e)
+                }
+                failed_response = make_response(jsonify(response_data), 400)
+                return failed_response
+
+            # delete file
+            os.remove(genomic_file_path)
+            # Return a 204 No Content response
+            success_response = make_response('')
+            success_response.status_code = 204
+            return success_response
+        else:
+            response_data = {
+                'message': 'File type must be csv and key must be genomic_file'
+            }
+            failed_response = make_response(jsonify(response_data), 400)
+            return failed_response
 
 def init_saml_auth(req):
     # load based on production information.
