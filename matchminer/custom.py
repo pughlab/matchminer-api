@@ -20,6 +20,7 @@ from requests.auth import HTTPBasicAuth
 
 from matchminer import settings, database
 from matchengineV2.matchengine.internals import load
+from matchengineV2.matchengine.internals.engine import MatchEngine as MatchEngineV2
 from matchminer import data_model
 import matchminer.miner
 from matchminer.custom_date import DateTimeEncoder
@@ -1060,3 +1061,26 @@ def getLatestResultOfAllTrialsWithCounts():
                     mimetype="application/json")
 
     return resp
+
+@blueprint.route('/api/run_ctims_matchengine', methods=['GET'])
+@nocache
+# @auth_required
+def run_ctims_matchengine():
+    """
+    Runs MatchEngine to rebuild trial matches.
+    :return:
+    """
+    with MatchEngineV2(
+        match_on_deceased=True,
+        match_on_closed=True,
+        db_name="matchminer",
+        debug=True) as me_prod:
+        me_prod.get_matches_for_all_trials()
+        me_prod.update_all_matches()
+
+    # reset_elasticsearch()
+    resp = Response(response=json.dumps({"success": True}),
+                    status=200,
+                    mimetype="application/json")
+    return resp
+
