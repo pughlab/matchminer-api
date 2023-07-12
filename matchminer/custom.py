@@ -1074,6 +1074,7 @@ def run_ctims_matchengine():
         match_on_deceased=True,
         match_on_closed=True,
         db_name="matchminer",
+        # report_all_clinical_reasons=True,
         debug=True) as me_prod:
         me_prod.get_matches_for_all_trials()
         me_prod.update_all_matches()
