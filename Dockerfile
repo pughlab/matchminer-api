@@ -51,6 +51,6 @@ RUN pip install 'pymongo==3.10'
 
 WORKDIR /matchminerAPI
 
-ENV SECRETS_JSON=/matchminerAPI/secrets_json_dev.json
+ENV SECRETS_JSON=/matchminerAPI/secrets_json_prod.json
 
 CMD python pymm_run.py serve --no-auth
