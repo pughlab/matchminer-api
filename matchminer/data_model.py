@@ -1676,7 +1676,7 @@ trial_match_schema = {
 ctims_trial_match_schema = {
 	'arm_description': {'type': 'string'},
 	'studyid': {'type': 'string'},
-    'mrn': {'type': 'string'},
+    'patient_id': {'type': 'string'},
     'sample_id': {'type': 'string'},
     'protocol_no': {'type': 'string'},
     'vital_status': {'type': 'string', 'allowed': ['alive', 'deceased'], 'nullable': True},
