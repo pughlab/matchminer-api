@@ -1073,6 +1073,7 @@ def run_ctims_matchengine():
     with MatchEngineV2(
         match_on_deceased=True,
         match_on_closed=True,
+        ignore_report_date=True,
         db_name="matchminer",
         # report_all_clinical_reasons=True,
         debug=True) as me_prod:
