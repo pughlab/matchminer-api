@@ -1690,6 +1690,7 @@ ctims_trial_match_schema = {
     'true_hugo_symbol': {'type': 'string', 'nullable': True},
     'variant_category': {'type': 'string', 'nullable': True, 'allowed': ['MUTATION', 'CNV', 'SV']},
     'mutation_effect': {'type': 'string'},
+    'short_title': {'type': 'string'}
 }
 
 negative_genomic_schema = {
