@@ -991,7 +991,8 @@ def metadata():
 @blueprint.route('/api/ctims_trial_summary', methods=['GET'])
 def getLatestResultOfAllTrialsWithCounts():
     # in trial_match collection, find all the records grouped by protocol_no, and get the latest of _updated
-    # return an array of unique protocol_no where it has the latest _updated, and the count of the records
+    # return an array grouped by protocol_no with the latest _updated,
+    # next it adds sample id if it hasn't been already added, so the count of sample id is the unique set of sample ids
 
     # get the db
     db = app.data.driver.db
@@ -1026,8 +1027,11 @@ def getLatestResultOfAllTrialsWithCounts():
                         }
                     },
                     {
-                        "$count": "count"
-                    }
+                        "$group": {
+                            "_id": "$protocol_no",
+                            "unique_sample_count": {"$addToSet": "$sample_id"},
+                        }
+                    },
                 ],
                 "as": "result"
             }
@@ -1040,7 +1044,7 @@ def getLatestResultOfAllTrialsWithCounts():
                 "_id": 0,
                 "protocol_no": "$_id",
                 "_updated": "$last_updated",
-                "count": "$result.count"
+                "count": {"$size": "$result.unique_sample_count"}
             }
         }
     ]
