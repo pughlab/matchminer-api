@@ -1693,6 +1693,9 @@ ctims_trial_match_schema = {
     'short_title': {'type': 'string'},
     'true_variant_classification': {'type': 'string', 'nullable': True},
     'cnv_call': {'type': 'string', 'nullable': True},
+    "left_partner_gene": {'type': 'string', 'nullable': True},
+    "right_partner_gene": {'type': 'string', 'nullable': True},
+    'code': {'type': 'string'},
 }
 
 negative_genomic_schema = {
