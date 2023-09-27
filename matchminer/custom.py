@@ -1094,19 +1094,3 @@ def run_ctims_matchengine():
                     status=200,
                     mimetype="application/json")
     return resp
-
-@blueprint.route('/api/ctims_trial_match/<string:patient_id>', methods=['GET'])
-@auth_required
-@nocache
-def get_result_by_patient_id(patient_id):
-    # get the db
-    db = app.data.driver.db
-
-    # get the collection
-    collection = db['trial_match']
-
-    result = collection.find_one({'patient_id': patient_id})
-    if result:
-        return result
-    else:
-        return jsonify({"message": "Result not found"}), 404

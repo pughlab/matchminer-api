@@ -49,6 +49,7 @@ clinical = {
 }
 
 trial_match = {
+    'url': 'trial_match/<regex("[A-Z\-0-9\-0-9]{11}"):patient_id>',
     'schema': matchminer.data_model.trial_match_schema,
     'allow_unknown': False,
     'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
@@ -57,6 +58,7 @@ trial_match = {
 }
 
 ctims_trial_match = {
+    'url': 'ctims_trial_match/<regex("[A-Z\-0-9\-0-9]{11}"):patient_id>',
     'schema': matchminer.data_model.ctims_trial_match_schema,
     'datasource': {
         'source': 'trial_match'
