@@ -650,6 +650,7 @@ def get_panel():
 
 
 @blueprint.route('/api/load_trial', methods=['POST'])
+@auth_required
 def load_trial():
     if request.json and 'trial_list' in request.json:
         trial_list = request.json['trial_list']
@@ -669,6 +670,7 @@ def load_trial():
         return failed_response
 
 @blueprint.route('/api/load_clinical', methods=['POST'])
+@auth_required
 def load_clinical():
     if request.files and 'clinical_file' in request.files:
         clinical_file = request.files['clinical_file']
@@ -700,6 +702,7 @@ def load_clinical():
 
 
 @blueprint.route('/api/load_genomic', methods=['POST'])
+@auth_required
 def load_genomic():
     if request.files and 'genomic_file' in request.files:
         genomic_file = request.files['genomic_file']
@@ -989,6 +992,8 @@ def metadata():
 
 
 @blueprint.route('/api/ctims_trial_summary', methods=['GET'])
+@auth_required
+@nocache
 def getLatestResultOfAllTrialsWithCounts():
     # in trial_match collection, find all the records grouped by protocol_no, and get the latest of _updated
     # return an array grouped by protocol_no with the latest _updated,
@@ -1068,7 +1073,7 @@ def getLatestResultOfAllTrialsWithCounts():
 
 @blueprint.route('/api/run_ctims_matchengine', methods=['GET'])
 @nocache
-# @auth_required
+@auth_required
 def run_ctims_matchengine():
     """
     Runs MatchEngine to rebuild trial matches.
@@ -1089,4 +1094,3 @@ def run_ctims_matchengine():
                     status=200,
                     mimetype="application/json")
     return resp
-

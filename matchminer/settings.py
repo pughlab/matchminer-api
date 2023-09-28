@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
 
 SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
 
-MM_SETTINGS = ""
+MM_SETTINGS = os.getenv("MM_SETTINGS", "DEV")
 MONGO_HOST = ""
 MONGO_PORT = ""
 MONGO_AUTH_SOURCE = ""
@@ -20,7 +20,7 @@ OPLOG = ""
 ACS_URL = ""
 SLS_URL = ""
 SAML_SETTINGS = ""
-NO_AUTH = ""
+NO_AUTH = os.getenv("NO_AUTH", "False")
 WELCOME_EMAIL = ""
 API_PORT = ""
 API_TOKEN = ""

@@ -16,6 +16,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && apt-get insta
 # and partly to reduce image size.
 ENV PIP_NO_CACHE_DIR=1 PIP_NO_COMPILE=no
 
+
 RUN mkdir /matchminerAPI
 
 # Install requirements:
@@ -51,6 +52,11 @@ RUN pip install 'pymongo==3.10'
 
 WORKDIR /matchminerAPI
 
-ENV SECRETS_JSON=/matchminerAPI/secrets_json_prod.json
+ARG MM_API_TOKEN
+ENV MM_API_TOKEN=$MM_API_TOKEN
 
-CMD python pymm_run.py serve --no-auth
+ENV SECRETS_JSON=/matchminerAPI/secrets_json_prod.json
+ENV MM_SETTINGS=PROD
+ENV NO_AUTH=False
+
+CMD python pymm_run.py serve

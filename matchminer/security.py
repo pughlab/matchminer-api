@@ -102,10 +102,18 @@ def authorize_custom_request(request):
     """
 
     accounts = app.data.driver.db['user']
-    ta = TokenAuth()
     not_authed = False
-    if request.authorization is not None:
-        token = request.authorization.username
+    has_token = request.authorization is not None
+    if not has_token:
+        # try again with looking into headers
+        has_token = request.headers.get('Authorization') is not None
+
+    if has_token:
+        if request.authorization is None:
+            bearer_token = request.headers.get('Authorization')
+            token = bearer_token.replace('Bearer ', '')
+        else:
+            token = request.authorization.username
 
         # find the user.
         user = accounts.find_one({'token': token})
