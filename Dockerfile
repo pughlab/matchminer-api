@@ -52,9 +52,6 @@ RUN pip install 'pymongo==3.10'
 
 WORKDIR /matchminerAPI
 
-ARG MM_API_TOKEN
-ENV MM_API_TOKEN=$MM_API_TOKEN
-
 ENV SECRETS_JSON=/matchminerAPI/secrets_json_prod.json
 ENV MM_SETTINGS=PROD
 ENV NO_AUTH=False
