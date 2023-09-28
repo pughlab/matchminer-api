@@ -12,7 +12,7 @@ from flask_cors import CORS
 from urllib.parse import urlparse
 from bson import ObjectId, SON
 
-# from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from onelogin.saml2.auth import OneLogin_Saml2_Auth
 import simplejson as json
 import oncotreenx
 from requests import post, get
