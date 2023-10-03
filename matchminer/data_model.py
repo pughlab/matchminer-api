@@ -263,6 +263,7 @@ clinical_schema = {
     'BIRTH_DATE': {'type': 'datetime', 'required': True},
     'COLLECTION_DATE': {'type': 'datetime', 'required': False, 'nullable': True},
     'BIRTH_DATE_INT': {'type': 'integer', 'required': False},
+    'AGE': {'type': 'integer', 'required': False},
     'VITAL_STATUS': {'type': 'string', 'required': True, 'allowed': ['alive', 'deceased', None], 'nullable': True},
     'LAST_VISIT_DATE': {'type': 'datetime'},
 
@@ -1670,7 +1671,26 @@ trial_match_schema = {
     'sort_order': {'type': 'integer'},
     'trial_summary_status': {'type': 'string', 'required': False},
     'show_in_ui': {'type': 'boolean', 'required': False},
-    'is_disabled': {'type': 'boolean', 'required': False}
+    'is_disabled': {'type': 'boolean', 'required': False},
+    'nct_id': {'type': 'string', 'nullable': True},
+    'trial_age_numerical': {'type': 'string', 'nullable': True},
+    'arm_description': {'type': 'string', 'nullable': True},
+    'trial_oncotree_primary_diagnosis': {'type': 'string', 'nullable': True},
+    'clinical_only': {'type': 'string', 'nullable': True},
+    'coordinating_center': {'type': 'string', 'nullable': True},
+    'dose': {'type': 'string', 'nullable': True},
+    'er_status': {'type': 'string', 'nullable': True},
+    'gender': {'type': 'string', 'nullable': True},
+    'genomic_alteration': {'type': 'string', 'nullable': True},
+    'her2_status': {'type': 'string', 'nullable': True},
+    'match_cancer_type': {'type': 'string', 'nullable': True},
+    'mutation_effect': {'type': 'string', 'nullable': True},
+    'oncogenicity': {'type': 'string', 'nullable': True},
+    'patient_id': {'type': 'string', 'nullable': True},
+    'pr_status': {'type': 'string', 'nullable': True},
+    'position': {'type': 'string', 'nullable': True},
+    'title': {'type': 'string', 'nullable': True},
+    'age': {'type': 'string', 'nullable': True},
 }
 
 ctims_trial_match_schema = {
