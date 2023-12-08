@@ -1,7 +1,7 @@
 version: "3"
 services:
-  mm-api-qa:
-    container_name: mm-api_qa
+  mm_api_qa:
+    container_name: mm_api_qa
     restart: "no"
     build:
       context: .
