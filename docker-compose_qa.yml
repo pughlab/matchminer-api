@@ -1,0 +1,24 @@
+version: "3"
+services:
+  mm-api-qa:
+    container_name: mm-api_qa
+    restart: "no"
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+      args:
+        MM_API_TOKEN: ${MM_API_TOKEN}
+    command: python pymm_run.py serve
+    volumes:
+      - .:/matchminerAPI
+    ports:
+      - "5001:5000"
+    environment:
+      - SECRETS_JSON=./secrets_json_dev.json
+    networks:
+      - qa-network
+
+
+networks:
+  qa-network:
+    external: true
