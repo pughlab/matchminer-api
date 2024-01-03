@@ -74,7 +74,8 @@ markupsafe==2.0.1
     # via
     #   -r requirements.in
     #   jinja2
-matchengine-v2 @ git+https://github.com/pughlab/matchengine-V2.git@anton-dockerize
+# matchengine-v2 @ git+https://github.com/pughlab/matchengine-V2.git@anton-dockerize
+# pmatchengine @ git+git@github.com/dfci/pmatchengine.git@pugh-lab
     # via -r requirements.in
 mattermostdriver==6.2.0
     # via -r requirements.in
