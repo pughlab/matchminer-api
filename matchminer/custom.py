@@ -3,6 +3,7 @@ import uuid
 import datetime
 import base64
 import threading
+from argparse import Namespace
 
 from werkzeug.utils import secure_filename
 
@@ -19,8 +20,11 @@ from requests import post, get
 from requests.auth import HTTPBasicAuth
 
 from matchminer import settings, database
-from matchengineV2.matchengine.internals import load
-from matchengineV2.matchengine.internals.engine import MatchEngine as MatchEngineV2
+# from matchengineV2.matchengine.internals import load
+# from matchengineV2.matchengine.internals.engine import MatchEngine as MatchEngineV2
+from pmatchengine.matchengine.internals.engine import MatchEngine as PMatchEngine
+from pmatchengine.matchengine.internals import load
+
 from matchminer import data_model
 import matchminer.miner
 from matchminer.custom_date import DateTimeEncoder
@@ -654,9 +658,19 @@ def get_panel():
 def load_trial():
     if request.json and 'trial_list' in request.json:
         trial_list = request.json['trial_list']
-        # trial_load_input = load.LoadTrialInput('json', trial_list)
-        # load.load(trial_load_input)
-        load.load_from_variable(trial_list)
+
+        args = Namespace(
+            drop=False,
+            genomic=None,
+            clinical=None,
+            trial=trial,
+            db_name='matchminer',
+            plugin_dir='pugh-lab/plugins',
+            patient_format='json',
+            upsert_fields='',
+        )
+
+        load.load(args)
 
         # Return a 204 No Content response
         success_response = make_response('')
@@ -686,7 +700,19 @@ def load_clinical():
 
             clinical_file_path = os.path.join('clinical_uploads', secure_path)
             clinical_file.save(clinical_file_path)
-            load.load_clinical_via_api(clinical_file_path)
+
+            args = Namespace(
+                drop=False,
+                genomic=None,
+                clinical=clinical,
+                trial=None,
+                db_name='matchminer',
+                plugin_dir='pugh-lab/plugins',
+                patient_format='json',
+                upsert_fields='',
+            )
+            load.load(args)
+
             # delete file
             os.remove(clinical_file_path)
             # Return a 204 No Content response
@@ -718,8 +744,19 @@ def load_genomic():
 
             genomic_file_path = os.path.join('genomic_uploads', secure_path)
             genomic_file.save(genomic_file_path)
+
+            args = Namespace(
+                drop=False,
+                genomic=genomic_file_path,
+                clinical=None,
+                trial=None,
+                db_name='matchminer',
+                plugin_dir='pugh-lab/plugins',
+                patient_format='json',
+                upsert_fields='',
+            )
             try:
-                load.load_genomic_via_api(genomic_file_path)
+                load.load(args)
             except RuntimeError as e:
                 # delete file
                 os.remove(genomic_file_path)
@@ -1079,15 +1116,16 @@ def run_ctims_matchengine():
     Runs MatchEngine to rebuild trial matches.
     :return:
     """
-    with MatchEngineV2(
-        match_on_deceased=True,
-        match_on_closed=True,
-        ignore_report_date=True,
-        db_name="matchminer",
-        # report_all_clinical_reasons=True,
-        debug=True) as me_prod:
-        me_prod.get_matches_for_all_trials()
-        me_prod.update_all_matches()
+
+    with PMatchEngine(
+            plugin_dir='pugh-lab/plugins',
+            match_on_closed=True,
+            match_on_deceased=True,
+            config='pugh-lab/config.json',
+            db_name='matchminer',
+            itnore_report_date=True) as me:
+        me.get_matches_for_all_trials()
+        me.update_all_matches()
 
     # reset_elasticsearch()
     resp = Response(response=json.dumps({"success": True}),
