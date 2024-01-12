@@ -22,6 +22,7 @@ from requests.auth import HTTPBasicAuth
 from matchminer import settings, database
 # from matchengineV2.matchengine.internals import load
 # from matchengineV2.matchengine.internals.engine import MatchEngine as MatchEngineV2
+
 from pmatchengine.matchengine.internals.engine import MatchEngine as PMatchEngine
 from pmatchengine.matchengine.internals import load
 
@@ -663,11 +664,12 @@ def load_trial():
             drop=False,
             genomic=None,
             clinical=None,
-            trial=trial,
+            trial=trial_list,
             db_name='matchminer',
             plugin_dir='pugh-lab/plugins',
             patient_format='json',
             upsert_fields='',
+            from_api=True
         )
 
         load.load(args)
@@ -704,7 +706,7 @@ def load_clinical():
             args = Namespace(
                 drop=False,
                 genomic=None,
-                clinical=clinical,
+                clinical=clinical_file_path,
                 trial=None,
                 db_name='matchminer',
                 plugin_dir='pugh-lab/plugins',
@@ -1118,12 +1120,13 @@ def run_ctims_matchengine():
     """
 
     with PMatchEngine(
-            plugin_dir='pugh-lab/plugins',
+            plugin_dir='./pugh-lab/plugins',
             match_on_closed=True,
             match_on_deceased=True,
-            config='pugh-lab/config.json',
+            config='./pugh-lab/config.json',
             db_name='matchminer',
-            itnore_report_date=True) as me:
+            ignore_run_log=True,
+            ignore_report_date=True) as me:
         me.get_matches_for_all_trials()
         me.update_all_matches()
 

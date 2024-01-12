@@ -14,7 +14,7 @@ WORKDIR /matchminerAPI
 
 # add github host to known hosts since it's private repo
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN --mount=type=ssh pip install git+ssh://git@github.com/dfci/pmatchengine.git@pugh-lab
+RUN --mount=type=ssh pip install git+ssh://git@github.com:pughlab/pmatchengine-pugh-lab.git
 
 RUN pip install -r requirements.txt
 
