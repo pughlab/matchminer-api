@@ -20,11 +20,8 @@ from requests import post, get
 from requests.auth import HTTPBasicAuth
 
 from matchminer import settings, database
-# from matchengineV2.matchengine.internals import load
-# from matchengineV2.matchengine.internals.engine import MatchEngine as MatchEngineV2
-
-from pmatchengine.matchengine.internals.engine import MatchEngine as PMatchEngine
-from pmatchengine.matchengine.internals import load
+from matchengine.internals.engine import MatchEngine as PMatchEngine
+from matchengine.internals import load
 
 from matchminer import data_model
 import matchminer.miner
@@ -1120,10 +1117,10 @@ def run_ctims_matchengine():
     """
 
     with PMatchEngine(
-            plugin_dir='./pugh-lab/plugins',
+            plugin_dir='/usr/local/pugh-lab',
             match_on_closed=True,
             match_on_deceased=True,
-            config='./pugh-lab/config.json',
+            config='/usr/local/pugh-lab/config.json',
             db_name='matchminer',
             ignore_run_log=True,
             ignore_report_date=True) as me:
