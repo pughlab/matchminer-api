@@ -1115,12 +1115,15 @@ def run_ctims_matchengine():
     Runs MatchEngine to rebuild trial matches.
     :return:
     """
+    installed_dir = sys.prefix
+    plugin_dir = os.path.join(installed_dir, 'pugh-lab')
+    file_dir = os.path.join(plugin_dir, 'config.json')
 
     with PMatchEngine(
-            plugin_dir='/usr/local/pugh-lab',
+            plugin_dir=plugin_dir,
             match_on_closed=True,
             match_on_deceased=True,
-            config='/usr/local/pugh-lab/config.json',
+            config=file_dir,
             db_name='matchminer',
             ignore_run_log=True,
             ignore_report_date=True) as me:
