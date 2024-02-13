@@ -1090,7 +1090,7 @@ def getLatestResultOfAllTrialsWithCounts():
         }
     ]
 
-    result = list(collection.aggregate(pipeline))
+    result = list(collection.aggregate(pipeline, allowDiskUse=True))
 
     # Process the results
     unique_protocol_numbers = []
