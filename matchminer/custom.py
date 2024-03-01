@@ -1090,6 +1090,62 @@ def getLatestResultOfAllTrialsWithCounts():
         }
     ]
 
+    if request.json and 'protocol_no_list' in request.json:
+        protoco_no_list = request.json['protocol_no_list']
+        # print(protoco_no_list)
+
+        # Query the collection
+        pipeline = [
+            {
+                "$match": {
+                    "protocol_no": { "$in": protoco_no_list}
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$protocol_no",
+                    "last_updated": {"$first": "$_updated"},
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "trial_match",
+                    "let": {"protocol_no": "$_id", "last_updated": "$last_updated"},
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$protocol_no", "$$protocol_no"]},
+                                        {"$eq": ["$_updated", "$$last_updated"]}
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": "$protocol_no",
+                                "unique_sample_count": {"$addToSet": "$sample_id"},
+                            }
+                        },
+                    ],
+                    "as": "result"
+                }
+            },
+            {
+                "$unwind": "$result"
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "protocol_no": "$_id",
+                    "_updated": "$last_updated",
+                    "count": {"$size": "$result.unique_sample_count"}
+                }
+            }
+        ]
+
+
     result = list(collection.aggregate(pipeline, allowDiskUse=True))
 
     # Process the results
