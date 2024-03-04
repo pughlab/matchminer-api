@@ -1042,7 +1042,22 @@ def getLatestResultOfAllTrialsWithCounts():
     collection = db['trial_match']
 
     # Query the collection
-    pipeline = [
+    pipeline = []
+    if request.json and 'protocol_no_list' in request.json:
+        # if the request has protocol_no_list then query using the list
+        protocol_no_list = request.json['protocol_no_list']
+        # print(protoco_no_list)
+
+        # Query the collection
+        pipeline = [
+            {
+                "$match": {
+                    "protocol_no": { "$in": protocol_no_list}
+                }
+            } 
+        ]
+
+    common_pipeline = [
         {
             "$sort": SON([("protocol_no", 1), ("_updated", -1)])
         },
@@ -1089,6 +1104,8 @@ def getLatestResultOfAllTrialsWithCounts():
             }
         }
     ]
+
+    pipeline.extend(common_pipeline)
 
     result = list(collection.aggregate(pipeline, allowDiskUse=True))
 
