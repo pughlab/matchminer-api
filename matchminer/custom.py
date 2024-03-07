@@ -1135,6 +1135,11 @@ def run_ctims_matchengine():
     installed_dir = sys.prefix
     plugin_dir = os.path.join(installed_dir, 'pugh-lab')
     file_dir = os.path.join(plugin_dir, 'config.json')
+    protocol_nos = None
+
+    if (request.json and 'protocol_no_list' in request.json):
+        protocol_nos = request.json['protocol_no_list']
+
 
     with PMatchEngine(
             plugin_dir=plugin_dir,
@@ -1143,7 +1148,9 @@ def run_ctims_matchengine():
             config=file_dir,
             db_name='matchminer',
             ignore_run_log=True,
-            ignore_report_date=True) as me:
+            ignore_report_date=True,
+            protocol_nos=protocol_nos
+    ) as me:
         me.get_matches_for_all_trials()
         me.update_all_matches()
 
