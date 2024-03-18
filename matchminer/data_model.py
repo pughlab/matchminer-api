@@ -1716,7 +1716,8 @@ ctims_trial_match_schema = {
     'code': {'type': 'string'},
     'trial_curation_level_status': {'type': 'string', 'required': False},
     'age_criteria': {'type': 'string', 'nullable': True},
-    'ms_status': {'type': 'string', 'nullable': True}
+    'ms_status': {'type': 'string', 'nullable': True},
+    'match_type': {'type': 'string', 'nullable': True}
 }
 
 negative_genomic_schema = {
