@@ -580,7 +580,7 @@ def unique_query():
     return resp
 
 
-@blueprint.route('/api/delete_genomic_by_sample', methods=['DELETE'])
+@blueprint.route('/api/delete_genomic_by_sample', methods=['GET'])
 @nocache
 @auth_required
 def delete_genomic_by_sample():
