@@ -12,6 +12,7 @@ from flask import Response, request, render_template, redirect, session, make_re
 from flask_cors import CORS
 from urllib.parse import urlparse
 from bson import ObjectId, SON
+from bson import json_util
 
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 import simplejson as json
@@ -590,6 +591,39 @@ def delete_genomic_by_sample():
 
     # encode response.
     resp = Response(response={"success": True},
+                    status=200,
+                    mimetype="application/json")
+
+    return resp
+
+@blueprint.route('/api/delete_trial_by_protocol', methods=['DELETE'])
+@nocache
+@auth_required
+def delete_trial_by_protocol():
+    protocol_no = request.args.get("protocol_no")
+
+    if protocol_no is not None:
+        database.get_collection('trial').delete_many({"protocol_no": protocol_no})
+
+    # encode response.
+    resp = Response(response={"success": True},
+                    status=200,
+                    mimetype="application/json")
+
+    return resp
+
+@blueprint.route('/api/get_trial_by_protocol', methods=['GET'])
+@nocache
+@auth_required
+def get_trial_by_protocol():
+    protocol_no = request.args.get("PROTOCOL_NO")
+
+    result = None
+    if protocol_no is not None:
+        result = database.get_collection('trial').find({"protocol_no": protocol_no})
+    data = json.dumps(list(result), default=json_util.default)
+    # encode response.
+    resp = Response(response=data,
                     status=200,
                     mimetype="application/json")
 
