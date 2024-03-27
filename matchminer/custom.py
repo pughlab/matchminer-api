@@ -629,6 +629,39 @@ def get_trial_by_protocol():
 
     return resp
 
+@blueprint.route('/api/delete_trial_by_internal_id', methods=['DELETE'])
+@nocache
+@auth_required
+def delete_trial_by_internal_id():
+    trial_internal_id = request.args.get("trial_internal_id")
+
+    if trial_internal_id is not None:
+        database.get_collection('trial').delete_many({"trial_internal_id": trial_internal_id})
+
+    # encode response.
+    resp = Response(response={"success": True},
+                    status=200,
+                    mimetype="application/json")
+
+    return resp
+
+@blueprint.route('/api/get_trial_by_internal_id', methods=['GET'])
+@nocache
+@auth_required
+def get_trial_by_internal_id():
+    trial_internal_id = request.args.get("trial_internal_id")
+
+    result = None
+    if trial_internal_id is not None:
+        result = database.get_collection('trial').find({"trial_internal_id": trial_internal_id})
+    data = json.dumps(list(result), default=json_util.default)
+    # encode response.
+    resp = Response(response=data,
+                    status=200,
+                    mimetype="application/json")
+
+    return resp
+
 
 @blueprint.route('/api/utility/autocomplete', methods=['GET'])
 @nocache
@@ -1077,40 +1110,39 @@ def getLatestResultOfAllTrialsWithCounts():
 
     # Query the collection
     pipeline = []
-    if request.json and 'protocol_no_list' in request.json:
+    if request.json and 'trial_internal_id_list' in request.json:
         # if the request has protocol_no_list then query using the list
-        protocol_no_list = request.json['protocol_no_list']
-        # print(protoco_no_list)
+        trial_internal_id_list = request.json['trial_internal_id_list']
 
         # Query the collection
         pipeline = [
             {
                 "$match": {
-                    "protocol_no": { "$in": protocol_no_list}
+                    "trial_internal_id": { "$in": trial_internal_id_list}
                 }
             } 
         ]
 
     common_pipeline = [
         {
-            "$sort": SON([("protocol_no", 1), ("_updated", -1)])
+            "$sort": SON([("trial_internal_id", 1), ("_updated", -1)])
         },
         {
             "$group": {
-                "_id": "$protocol_no",
+                "_id": "$trial_internal_id",
                 "last_updated": {"$first": "$_updated"},
             }
         },
         {
             "$lookup": {
                 "from": "trial_match",
-                "let": {"protocol_no": "$_id", "last_updated": "$last_updated"},
+                "let": {"trial_internal_id": "$_id", "last_updated": "$last_updated"},
                 "pipeline": [
                     {
                         "$match": {
                             "$expr": {
                                 "$and": [
-                                    {"$eq": ["$protocol_no", "$$protocol_no"]},
+                                    {"$eq": ["$trial_internal_id", "$$trial_internal_id"]},
                                     {"$eq": ["$_updated", "$$last_updated"]}
                                 ]
                             }
@@ -1118,7 +1150,7 @@ def getLatestResultOfAllTrialsWithCounts():
                     },
                     {
                         "$group": {
-                            "_id": "$protocol_no",
+                            "_id": "$trial_internal_id",
                             "unique_sample_count": {"$addToSet": "$sample_id"},
                         }
                     },
@@ -1132,7 +1164,7 @@ def getLatestResultOfAllTrialsWithCounts():
         {
             "$project": {
                 "_id": 0,
-                "protocol_no": "$_id",
+                "trial_internal_id": "$_id",
                 "_updated": "$last_updated",
                 "count": {"$size": "$result.unique_sample_count"}
             }
@@ -1169,10 +1201,11 @@ def run_ctims_matchengine():
     installed_dir = sys.prefix
     plugin_dir = os.path.join(installed_dir, 'pugh-lab')
     file_dir = os.path.join(plugin_dir, 'config.json')
-    protocol_nos = None
+    plugin_dir = os.path.join(plugin_dir, 'plugins')
+    trial_internal_ids = None
 
-    if (request.json and 'protocol_no_list' in request.json):
-        protocol_nos = request.json['protocol_no_list']
+    if (request.json and 'trial_internal_id_list' in request.json):
+        trial_internal_ids = request.json['trial_internal_id_list']
 
 
     with PMatchEngine(
@@ -1183,7 +1216,7 @@ def run_ctims_matchengine():
             db_name='matchminer',
             ignore_run_log=True,
             ignore_report_date=True,
-            protocol_nos=protocol_nos
+            protocol_nos=trial_internal_ids
     ) as me:
         me.get_matches_for_all_trials()
         me.update_all_matches()
