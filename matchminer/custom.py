@@ -1233,17 +1233,36 @@ def run_ctims_matchengine():
 @auth_required
 def add_trial_internal_id_to_trials():
     if request.json and 'id_map' in request.json:
+        db = app.data.driver.db
+
+        collection = db["trial"]
+
         id_map = request.json['id_map']
+        messages = []
         try:
-            add_trial_internal_id_to_collection("trial", id_map)
+            for obj in id_map:
+                matching_trials = list(collection.find({"protocol_no": obj["protocol_no"]}))
+
+                # If no matching document found, print the internal_id and protocol_no for manual inspection
+                if not matching_trials:
+                    messages.append(f"Protocol_no {obj['protocol_no']} not found for internal_id {obj['internal_id']}")
+                elif len(matching_trials) == 1:
+                    messages.append(f"Protocol_no {obj['protocol_no']} updated with internal_id {obj['internal_id']}")
+                    collection.update_one({"_id": matching_trials[0]["_id"]},
+                                          {"$set": {"trial_internal_id": obj["internal_id"]}})
+                # If more than one matching document found, print the info for manual matching
+                else:
+                    messages.append(f"More than one matching document found for protocol_no {obj['protocol_no']}")
         except Exception as e:
             msg = 'Error adding trial internal id to trial collection'
             logging.error(msg)
             raise
 
-        # Return a 204 No Content response
-        success_response = make_response('')
-        success_response.status_code = 204
+        # Return a 200 OK
+        response_data = {
+            'message': '\n'.join(messages)
+        }
+        success_response = make_response(jsonify(response_data), 200)
         return success_response
     else:
         response_data = {
@@ -1258,17 +1277,42 @@ def add_trial_internal_id_to_trials():
 @auth_required
 def add_trial_internal_id_to_trial_match():
     if request.json and 'id_map' in request.json:
+        db = app.data.driver.db
+
+        collection = db["trial_match"]
+
         id_map = request.json['id_map']
+        messages = []
+
         try:
-            add_trial_internal_id_to_collection("trial_match", id_map)
+            for obj in id_map:
+                filter_query = {"protocol_no": obj["protocol_no"], "is_disabled": False}
+                matching_trials_count = collection.count_documents(filter_query)
+
+                # If no matching document found, print the internal_id and protocol_no for manual inspection
+                if matching_trials_count == 0:
+                    messages.append(f"Protocol_no {obj['protocol_no']} not found for internal_id {obj['internal_id']}")
+                else:
+                    distinct_update_values = collection.distinct("_updated", filter_query)
+                    if len(distinct_update_values) == 1:
+                        # if they were all matched at the same run
+                        update_result = collection.update_many(
+                            filter_query,
+                            {"$set": {"trial_internal_id": obj["internal_id"]}}
+                        )
+                        messages.append(f"{update_result.modified_count} documents updated for protocol_no {obj['protocol_no']}")
+                    else:
+                        messages.append(f"Update aborted: Different _update values found for protocol_no {obj['protocol_no']}")
         except Exception as e:
             msg = 'Error adding trial internal id to trial_match collection'
             logging.error(msg)
             raise
 
         # Return a 204 No Content response
-        success_response = make_response('')
-        success_response.status_code = 204
+        response_data = {
+            'message': '\n'.join(messages)
+        }
+        success_response = make_response(jsonify(response_data), 200)
         return success_response
     else:
         response_data = {
