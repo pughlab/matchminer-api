@@ -1321,22 +1321,3 @@ def add_trial_internal_id_to_trial_match():
         failed_response = make_response(jsonify(response_data), 400)
         return failed_response
 
-
-def add_trial_internal_id_to_collection(collection_name, id_map):
-    db = app.data.driver.db
-
-    collection = db[collection_name]
-
-    for obj in id_map:
-        matching_trials = list(collection.find({"protocol_no": obj["protocol_no"]}))
-
-        # If no matching document found, print the internal_id and protocol_no for manual inspection
-        if not matching_trials:
-            print(f"Protocol_no {obj['protocol_no']} not found for internal_id {obj['internal_id']}")
-        elif len(matching_trials) == 1:
-            print(f"Protocol_no {obj['protocol_no']} updated with internal_id {obj['internal_id']}")
-            collection.update_one({"_id": matching_trials[0]["_id"]},
-                                        {"$set": {"trial_internal_id": obj["internal_id"]}})
-        # If more than one matching document found, print the info for manual matching
-        else:
-            print(f"More than one matching document found for protocol_no {obj['protocol_no']}")
