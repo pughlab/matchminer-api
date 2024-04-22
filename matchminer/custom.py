@@ -1226,3 +1226,73 @@ def run_ctims_matchengine():
                     status=200,
                     mimetype="application/json")
     return resp
+
+
+@blueprint.route('/api/add_id_to_trials', methods=['POST'])
+@nocache
+@auth_required
+def add_trial_internal_id_to_trials():
+    if request.json and 'id_map' in request.json:
+        id_map = request.json['id_map']
+        try:
+            add_trial_internal_id_to_collection("trial", id_map)
+        except Exception as e:
+            msg = 'Error adding trial internal id to trial collection'
+            logging.error(msg)
+            raise
+
+        # Return a 204 No Content response
+        success_response = make_response('')
+        success_response.status_code = 204
+        return success_response
+    else:
+        response_data = {
+            'message': 'Missing required field: id_map'
+        }
+        failed_response = make_response(jsonify(response_data), 400)
+        return failed_response
+
+
+@blueprint.route('/api/add_id_to_match_results', methods=['POST'])
+@nocache
+@auth_required
+def add_trial_internal_id_to_trial_match():
+    if request.json and 'id_map' in request.json:
+        id_map = request.json['id_map']
+        try:
+            add_trial_internal_id_to_collection("trial_match", id_map)
+        except Exception as e:
+            msg = 'Error adding trial internal id to trial_match collection'
+            logging.error(msg)
+            raise
+
+        # Return a 204 No Content response
+        success_response = make_response('')
+        success_response.status_code = 204
+        return success_response
+    else:
+        response_data = {
+            'message': 'Missing required field: id_map'
+        }
+        failed_response = make_response(jsonify(response_data), 400)
+        return failed_response
+
+
+def add_trial_internal_id_to_collection(collection_name, id_map):
+    db = app.data.driver.db
+
+    collection = db[collection_name]
+
+    for obj in id_map:
+        matching_trials = list(collection.find({"protocol_no": obj["protocol_no"]}))
+
+        # If no matching document found, print the internal_id and protocol_no for manual inspection
+        if not matching_trials:
+            print(f"Protocol_no {obj['protocol_no']} not found for internal_id {obj['internal_id']}")
+        elif len(matching_trials) == 1:
+            print(f"Protocol_no {obj['protocol_no']} updated with internal_id {obj['internal_id']}")
+            collection.update_one({"_id": matching_trials[0]["_id"]},
+                                        {"$set": {"trial_internal_id": obj["internal_id"]}})
+        # If more than one matching document found, print the info for manual matching
+        else:
+            print(f"More than one matching document found for protocol_no {obj['protocol_no']}")
