@@ -1199,7 +1199,6 @@ def run_ctims_matchengine():
     installed_dir = sys.prefix
     plugin_dir = os.path.join(installed_dir, 'pugh-lab')
     file_dir = os.path.join(plugin_dir, 'config.json')
-    plugin_dir = os.path.join(plugin_dir, 'plugins')
     trial_internal_ids = None
 
     if (request.json and 'trial_internal_id_list' in request.json):
