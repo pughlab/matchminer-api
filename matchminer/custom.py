@@ -1094,7 +1094,7 @@ def metadata():
     return resp
 
 
-@blueprint.route('/api/ctims_trial_summary', methods=['GET'])
+@blueprint.route('/api/ctims_trial_summary', methods=['POST'])
 @auth_required
 @nocache
 def getLatestResultOfAllTrialsWithCounts():
@@ -1178,9 +1178,7 @@ def getLatestResultOfAllTrialsWithCounts():
     # Process the results
     unique_protocol_numbers = []
     for doc in result:
-        print('abc', doc)
         unique_protocol_numbers.append(doc)
-
 
     # encode response.
     data = json.dumps({'values': unique_protocol_numbers}, cls=DateTimeEncoder)
