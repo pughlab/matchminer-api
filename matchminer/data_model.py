@@ -1720,6 +1720,16 @@ ctims_trial_match_schema = {
     'match_type': {'type': 'string', 'nullable': True}
 }
 
+prioritizer_trial_match_schema = {
+    'trial_internal_id': {'type': 'string'},
+    'patient_id': {'type': 'string'},
+    'sample_id': {'type': 'string'},
+    'code': {'type': 'string'},
+    'drug_name': {'type': 'string'},
+    'match_type': {'type': 'string', 'nullable': True},
+    'vital_status': {'type': 'string', 'allowed': ['alive', 'deceased'], 'nullable': True},
+}
+
 negative_genomic_schema = {
     'clinical_id': {'type': 'objectid', 'data_relation': {'resource': 'clinical'}, 'required': True},
     'sample_id': {'type': 'string', 'required': True},
