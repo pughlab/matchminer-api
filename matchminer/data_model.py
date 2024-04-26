@@ -1721,7 +1721,7 @@ ctims_trial_match_schema = {
 }
 
 prioritizer_trial_match_schema = {
-    'trial_internal_id': {'type': 'string'},
+    'trial_id': {'type': 'string'},
     'patient_id': {'type': 'string'},
     'sample_id': {'type': 'string'},
     'code': {'type': 'string'},
