@@ -2,10 +2,12 @@
 import argparse
 from eve import Eve
 from flask import redirect
+import pika
 
 from matchminer.elasticsearch import reset_elasticsearch
 from matchminer.utilities import *
 from matchminer.custom import blueprint
+from matchminer.custom import run_ctims_matchengine_job
 from matchminer import settings, security
 from matchminer.events import register_hooks
 from matchminer.validation import ConsentValidatorEve
@@ -34,7 +36,33 @@ app.config['SAML_PATH'] = os.path.join(cur_dir, 'saml')
 app.config['SECRET_KEY'] = SAML_SECRET
 app.register_blueprint(blueprint)
 app.register_blueprint(oncore_blueprint)
+app.on_fetched_resource += on_fetched_resource
 register_hooks(app)
+
+
+# Connect to RabbitMQ
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# Declare the queue
+channel.queue_declare(queue='run_match', durable=True)
+
+# Define callback function for processing jobs
+def process_job(ch, method, properties, body):
+    # Process the job
+    json_object = json.loads(body.decode())
+    trial_internal_ids = json_object['trial_internal_ids']
+    print("Received job:", trial_internal_ids)
+    print("running job")
+    run_ctims_matchengine_job(trial_internal_ids)
+    # Acknowledge the job
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+# Set up consumer
+channel.basic_qos(prefetch_count=1)  # Only one job at a time per consumer
+channel.basic_consume(queue='run_match', on_message_callback=process_job)
+
 
 
 @app.after_request
@@ -61,6 +89,11 @@ def redirect_response(err):
 def run_server(args):
     os.environ['NO_AUTH'] = str(args.no_auth)
     app.run(host='0.0.0.0', port=settings.API_PORT, threaded=True)
+
+    # Start consuming
+    print('Waiting for jobs...')
+    channel.start_consuming()
+
 
 
 # main
