@@ -17,6 +17,10 @@ cur_dir = os.path.dirname(os.path.realpath(__file__))
 static_dir = os.path.join(cur_dir, 'static')
 settings_file = os.path.join(cur_dir, "matchminer/settings.py")
 
+def on_fetched_resource(resource, response):
+    for document in response['_items']:
+        del(document['_created'])
+
 if settings.NO_AUTH:
     logging.warning("NO AUTHENTICATION IS ENABLED - SKIPPING HIPAA LOGGING")
     app = Eve(settings=settings_file,
@@ -34,6 +38,7 @@ app.config['SAML_PATH'] = os.path.join(cur_dir, 'saml')
 app.config['SECRET_KEY'] = SAML_SECRET
 app.register_blueprint(blueprint)
 app.register_blueprint(oncore_blueprint)
+app.on_fetched_resource += on_fetched_resource
 register_hooks(app)
 
 

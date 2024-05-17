@@ -7,6 +7,8 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
 
 SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
 
+HATEOAS = False
+IF_MATCH = False
 MM_SETTINGS = os.getenv("MM_SETTINGS", "DEV")
 MONGO_HOST = ""
 MONGO_PORT = ""
