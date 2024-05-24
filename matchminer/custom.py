@@ -1098,8 +1098,92 @@ def metadata():
 @auth_required
 @nocache
 def getLatestResultOfAllTrialsWithCounts():
-    # in trial_match collection, find all the records grouped by protocol_no, and get the latest of _updated
-    # return an array grouped by protocol_no with the latest _updated,
+    # in trial_match collection, find all the records which "is_disabled: false" and grouped by trial_internal_id 
+    # return an array grouped by trial_internal_id,
+    # next it adds patient id if it hasn't been already added, so the count of patient id is the unique set of patient ids
+
+    # get the db
+    db = app.data.driver.db
+
+    # get the collection
+    collection = db['trial_match']
+
+    # Query the collection
+    pipeline = []
+    if request.json and 'trial_internal_id_list' in request.json:
+        # if the request has trial_internal_id_list then query using the list
+        trial_internal_id_list = request.json['trial_internal_id_list']
+        # Query the collection with specified trial_internal_id
+        pipeline = [
+            {
+                "$match": {
+                    "trial_internal_id": { "$in": trial_internal_id_list},
+                    "is_disabled": False
+                }
+            } 
+        ]
+    else:
+        # Query the collection
+        pipeline = [
+            {
+                "$match": {
+                    "is_disabled": False
+                }
+            } 
+        ]
+
+    common_pipeline = [
+        {
+            "$group": {
+            "_id": "$trial_internal_id",
+            "unique_patient_id": {
+                "$addToSet": "$patient_id"
+                }
+            }
+        },
+        {
+            "$unwind": "$unique_patient_id"
+        },
+        {
+            "$group": {
+            "_id": "$_id",
+            "count": {
+                "$count": {}
+                }
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "trial_internal_id": "$_id",
+                "count": 1
+            }
+        }  
+    ]
+
+    pipeline.extend(common_pipeline)
+
+    result = list(collection.aggregate(pipeline, allowDiskUse=True))
+
+    # Process the results
+    unique_trial_internal_ids = []
+    for doc in result:
+        unique_trial_internal_ids.append(doc)
+
+    # encode response.
+    data = json.dumps({'values': unique_trial_internal_ids}, cls=DateTimeEncoder)
+    resp = Response(response=data,
+                    status=200,
+                    mimetype="application/json")
+
+    return resp
+
+@blueprint.route('/api/ctims_trial_summary2', methods=['POST'])
+@auth_required
+@nocache
+def getLatestResultOfAllTrialsWithCounts2():
+    # in trial_match collection, find all the records grouped by trial_internal_id, and get the latest of _updated
+    # return an array grouped by trial_internal_id with the latest _updated,
     # next it adds sample id if it hasn't been already added, so the count of sample id is the unique set of sample ids
 
     # get the db
@@ -1111,7 +1195,7 @@ def getLatestResultOfAllTrialsWithCounts():
     # Query the collection
     pipeline = []
     if request.json and 'trial_internal_id_list' in request.json:
-        # if the request has protocol_no_list then query using the list
+        # if the request has trial_internal_id_list then query using the list
         trial_internal_id_list = request.json['trial_internal_id_list']
 
         # Query the collection
