@@ -1136,6 +1136,7 @@ def getLatestResultOfAllTrialsWithCounts():
         {
             "$group": {
             "_id": "$trial_internal_id",
+            "last_updated": {"$first": "$_updated"},
             "unique_patient_id": {
                 "$addToSet": "$patient_id"
                 }
@@ -1147,6 +1148,7 @@ def getLatestResultOfAllTrialsWithCounts():
         {
             "$group": {
             "_id": "$_id",
+            "_updated": {"$first": "$last_updated"},
             "count": {
                 "$sum": 1
                 }
@@ -1156,6 +1158,7 @@ def getLatestResultOfAllTrialsWithCounts():
             "$project": {
                 "_id": 0,
                 "trial_internal_id": "$_id",
+                "_updated": "$_updated",
                 "count": 1
             }
         }  
