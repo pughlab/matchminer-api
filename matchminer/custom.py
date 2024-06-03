@@ -1148,7 +1148,7 @@ def getLatestResultOfAllTrialsWithCounts():
             "$group": {
             "_id": "$_id",
             "count": {
-                "$count": {}
+                "$sum": 1
                 }
             }
         },
