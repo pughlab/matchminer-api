@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+import threading
+
 from eve import Eve
 from flask import redirect
 import pika
@@ -51,6 +53,7 @@ channel = connection.channel()
 # Declare the queue
 channel.queue_declare(queue='run_match', durable=True)
 
+
 # Define callback function for processing jobs
 def process_job(ch, method, properties, body):
     # Process the job
@@ -66,7 +69,6 @@ def process_job(ch, method, properties, body):
 # Set up consumer
 channel.basic_qos(prefetch_count=1)  # Only one job at a time per consumer
 channel.basic_consume(queue='run_match', on_message_callback=process_job)
-
 
 
 @app.after_request
@@ -92,11 +94,16 @@ def redirect_response(err):
 
 def run_server(args):
     os.environ['NO_AUTH'] = str(args.no_auth)
-    app.run(host='0.0.0.0', port=settings.API_PORT, threaded=True)
 
-    # Start consuming
-    print('Waiting for jobs...')
-    channel.start_consuming()
+    def start_rabbit_consumer():
+        # Start consuming
+        print('Waiting for jobs...')
+        channel.start_consuming()
+
+    consumer_thread = threading.Thread(target=start_rabbit_consumer)
+    consumer_thread.start()
+
+    app.run(host='0.0.0.0', port=settings.API_PORT, threaded=True)
 
 
 

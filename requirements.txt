@@ -108,6 +108,7 @@ pep517==0.13.0
     # via build
 pip-tools==6.9.0
     # via -r requirements.in
+pika==1.3.2
 pyasn1==0.4.8
     # via
     #   oauth2client
