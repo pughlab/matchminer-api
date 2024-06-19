@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import atexit
 import threading
 
 from eve import Eve
@@ -58,12 +59,13 @@ channel.queue_declare(queue='run_match', durable=True)
 def process_job(ch, method, properties, body):
     # Process the job
     json_object = json.loads(body.decode())
-    trial_internal_ids = json_object['trial_internal_ids']
-    print("Received job:", trial_internal_ids)
-    print("running job")
-    run_ctims_matchengine_job(trial_internal_ids)
-    # Acknowledge the job
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+    if 'trial_internal_ids' in json_object:
+        trial_internal_ids = json_object['trial_internal_ids']
+        print("Received job:", trial_internal_ids)
+        print("running job")
+        run_ctims_matchengine_job(trial_internal_ids)
+        # Acknowledge the job
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 # Set up consumer
@@ -99,6 +101,11 @@ def run_server(args):
         # Start consuming
         print('Waiting for jobs...')
         channel.start_consuming()
+
+    def close_rabbit_connection():
+        connection.close()
+
+    atexit.register(close_rabbit_connection)
 
     consumer_thread = threading.Thread(target=start_rabbit_consumer)
     consumer_thread.start()
