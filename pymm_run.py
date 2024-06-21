@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 import argparse
-import atexit
 import threading
 
 from eve import Eve
 from flask import redirect
-import pika
 
 from matchminer.elasticsearch import reset_elasticsearch
 from matchminer.utilities import *
 from matchminer.custom import blueprint
-from matchminer.custom import run_ctims_matchengine_job
 from matchminer import settings, security
 from matchminer.events import register_hooks
 from matchminer.validation import ConsentValidatorEve
 from matchminer.components.oncore.oncore_app import oncore_blueprint
+from matchminer.message.rabbitmq_message import RabbitMQMessage
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
 
@@ -48,29 +46,31 @@ register_hooks(app)
 
 
 # Connect to RabbitMQ
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-channel = connection.channel()
+# RABBITMQ_URI = os.getenv("RABBITMQ_URI")
+# connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_URI))
+# channel = connection.channel()
 
 # Declare the queue
-channel.queue_declare(queue='run_match', durable=True)
+# RECEIVE_QUEUE = os.getenv("RECEIVE_QUEUE")
+# channel.queue_declare(queue=RECEIVE_QUEUE, durable=True)
 
 
 # Define callback function for processing jobs
-def process_job(ch, method, properties, body):
-    # Process the job
-    json_object = json.loads(body.decode())
-    if 'trial_internal_ids' in json_object:
-        trial_internal_ids = json_object['trial_internal_ids']
-        print("Received job:", trial_internal_ids)
-        print("running job")
-        run_ctims_matchengine_job(trial_internal_ids)
-        # Acknowledge the job
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+# def process_job(ch, method, properties, body):
+#     # Process the job
+#     json_object = json.loads(body.decode())
+#     if 'trial_internal_ids' in json_object:
+#         trial_internal_ids = json_object['trial_internal_ids']
+#         print("Received job:", trial_internal_ids)
+#         print("running job")
+#         run_ctims_matchengine_job(trial_internal_ids)
+#         # Acknowledge the job
+#         ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-# Set up consumer
-channel.basic_qos(prefetch_count=1)  # Only one job at a time per consumer
-channel.basic_consume(queue='run_match', on_message_callback=process_job)
+# # Set up consumer
+# channel.basic_qos(prefetch_count=1)  # Only one job at a time per consumer
+# channel.basic_consume(queue='run_match', on_message_callback=process_job)
 
 
 @app.after_request
@@ -97,20 +97,26 @@ def redirect_response(err):
 def run_server(args):
     os.environ['NO_AUTH'] = str(args.no_auth)
 
-    def start_rabbit_consumer():
-        # Start consuming
-        print('Waiting for jobs...')
-        channel.start_consuming()
+    # def start_rabbit_consumer():
+    #     # Start consuming
+    #     print('Waiting for jobs...')
+    #     channel.start_consuming()
+    #
+    # def close_rabbit_connection():
+    #     connection.close()
+    #
+    # atexit.register(close_rabbit_connection)
 
-    def close_rabbit_connection():
-        connection.close()
+    rabbitmq_message = RabbitMQMessage()
 
-    atexit.register(close_rabbit_connection)
-
-    consumer_thread = threading.Thread(target=start_rabbit_consumer)
+    consumer_thread = threading.Thread(target=rabbitmq_message.start_rabbit_consumer)
     consumer_thread.start()
 
-    app.run(host='0.0.0.0', port=settings.API_PORT, threaded=True)
+    app.run(host='0.0.0.0', port=settings.API_PORT,
+            threaded=True,
+            # use_reloader=True,
+            debug=False
+            )
 
 
 
