@@ -1411,7 +1411,6 @@ def run_ctims_matchengine_job(trial_internal_ids):
     :return:
     """
     installed_dir = sys.prefix
-    installed_dir = '/Users/kevinwang/src/cdi/matchminer/pmatchengine/pugh-lab'
     plugin_dir = os.path.join(installed_dir, 'plugins')
     file_dir = os.path.join(installed_dir, 'config.json')
 
