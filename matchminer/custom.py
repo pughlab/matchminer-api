@@ -1411,7 +1411,7 @@ def run_ctims_matchengine_job(trial_internal_ids):
     :return:
     """
     installed_dir = sys.prefix
-    plugin_dir = os.path.join(installed_dir, 'plugins')
+    plugin_dir = os.path.join(installed_dir, 'pugh-lab')
     file_dir = os.path.join(plugin_dir, 'config.json')
 
     print("running match for ", trial_internal_ids)
