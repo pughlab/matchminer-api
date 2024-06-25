@@ -1405,3 +1405,27 @@ def add_trial_internal_id_to_trial_match():
         failed_response = make_response(jsonify(response_data), 400)
         return failed_response
 
+def run_ctims_matchengine_job(trial_internal_ids):
+    """
+    Runs MatchEngine to rebuild trial matches.
+    :return:
+    """
+    installed_dir = sys.prefix
+    plugin_dir = os.path.join(installed_dir, 'plugins')
+    file_dir = os.path.join(installed_dir, 'config.json')
+
+    print("running match for ", trial_internal_ids)
+    with PMatchEngine(
+            plugin_dir=plugin_dir,
+            match_on_closed=True,
+            match_on_deceased=True,
+            config=file_dir,
+            db_name='matchminer',
+            ignore_run_log=True,
+            ignore_report_date=True,
+            protocol_nos=trial_internal_ids
+    ) as me:
+        me.get_matches_for_all_trials()
+        me.update_all_matches()
+
+    return "success"
