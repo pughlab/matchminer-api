@@ -56,6 +56,10 @@ class RabbitMQMessage:
     def process_job(self, ch, method, properties, body):
         # Process the job
         json_object = json.loads(body.decode())
+
+        # Acknowledge the job
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
         if 'trial_internal_ids' in json_object:
             trial_internal_ids = json_object['trial_internal_ids']
             print("Received job:", trial_internal_ids)
@@ -67,12 +71,13 @@ class RabbitMQMessage:
                 print(error_msg)
                 self.send_message(error_msg)
             else:
-                # Acknowledge the job
                 success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
                 print(success_msg)
                 self.send_message(success_msg)
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-
+        else:
+            error_msg = "Error: No trial_internal_ids in job"
+            print(error_msg)
+            self.send_message(error_msg)
 
     def close_rabbit_connection(self):
         print('Closing RabbitMQ connection...')
