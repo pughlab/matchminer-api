@@ -27,11 +27,19 @@ class RabbitMQMessage:
         self.RECEIVE_QUEUE = rabbitmq_options["RECEIVE_QUEUE"]
 
         # Connect to RabbitMQ receive queue
-        self.receive_connection = pika.BlockingConnection(pika.ConnectionParameters(self.RABBITMQ_URI))
+        self.receive_connection = pika.BlockingConnection(pika.ConnectionParameters(
+            host=self.RABBITMQ_URI,
+            port=int(self.RABBITMQ_PORT),
+            heartbeat=5 * 60,
+            blocked_connection_timeout=5 * 60))
         self.receive_channel = self.receive_connection.channel()
 
         # Connect to RabbitMQ send queue
-        self.send_connection = pika.BlockingConnection(pika.ConnectionParameters(self.RABBITMQ_URI))
+        self.send_connection = pika.BlockingConnection(pika.ConnectionParameters(
+            host=self.RABBITMQ_URI,
+            port=int(self.RABBITMQ_PORT),
+            heartbeat=3 * 60,
+            blocked_connection_timeout=3 * 60))
         self.send_channel = self.send_connection.channel()
 
         # Declare the queue
