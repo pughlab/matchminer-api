@@ -1,4 +1,6 @@
 import json
+from datetime import time
+
 import pika
 from matchengine.plugin_stub import DBSecrets
 from matchminer.custom import run_ctims_matchengine_job
@@ -25,26 +27,40 @@ class RabbitMQMessage:
         self.RABBITMQ_PORT = rabbitmq_options["RABBITMQ_PORT"]
         self.SEND_QUEUE = rabbitmq_options["SEND_QUEUE"]
         self.RECEIVE_QUEUE = rabbitmq_options["RECEIVE_QUEUE"]
+        self.reconnect_rabbitmq()
 
-        # Connect to RabbitMQ receive queue
-        self.receive_connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host=self.RABBITMQ_URI,
-            port=int(self.RABBITMQ_PORT),
-            heartbeat=5 * 60,
-            blocked_connection_timeout=5 * 60))
-        self.receive_channel = self.receive_connection.channel()
+    def reconnect_rabbitmq(self, max_retries=5, retry_delay=5):
+        for attempt in range(max_retries):
+            try:
+                # Connect to RabbitMQ receive queue
+                self.receive_connection = pika.BlockingConnection(pika.ConnectionParameters(
+                    host=self.RABBITMQ_URI,
+                    port=int(self.RABBITMQ_PORT),
+                    heartbeat=8 * 60,
+                    blocked_connection_timeout=8 * 60))
+                self.receive_channel = self.receive_connection.channel()
 
-        # Connect to RabbitMQ send queue
-        self.send_connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host=self.RABBITMQ_URI,
-            port=int(self.RABBITMQ_PORT),
-            heartbeat=3 * 60,
-            blocked_connection_timeout=3 * 60))
-        self.send_channel = self.send_connection.channel()
+                # Connect to RabbitMQ send queue
+                self.send_connection = pika.BlockingConnection(pika.ConnectionParameters(
+                    host=self.RABBITMQ_URI,
+                    port=int(self.RABBITMQ_PORT),
+                    heartbeat=8 * 60,
+                    blocked_connection_timeout=8 * 60))
+                self.send_channel = self.send_connection.channel()
 
-        # Declare the queue
-        self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, durable=True)
-        self.send_channel.queue_declare(queue=self.SEND_QUEUE, durable=True)
+                # Declare the queue
+                self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, durable=True)
+                self.send_channel.queue_declare(queue=self.SEND_QUEUE, durable=True)
+                print("Connected to RabbitMQ")
+                break
+            except pika.exceptions.AMQPConnectionError as e:
+                print(f"Error connecting to RabbitMQ attempt: {attempt + 1}: {str(e)}")
+                time.sleep(retry_delay)
+            except ConnectionResetError as e:
+                print(f"XConnecting reset attempt: {attempt + 1}: {str(e)}")
+                time.sleep(retry_delay)
+        else:
+            print(f"Failed to connect to RabbitMQ after {max_retries} attempts")
 
 
     def send_message(self, message):
