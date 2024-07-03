@@ -109,8 +109,9 @@ def run_server(args):
 
     rabbitmq_message = RabbitMQMessage()
 
-    consumer_thread = threading.Thread(target=rabbitmq_message.start_rabbit_consumer)
-    consumer_thread.start()
+    # consumer_thread = threading.Thread(target=rabbitmq_message.start_rabbit_consumer)
+    # consumer_thread.start()
+    rabbitmq_message.start_rabbit_consumer_thread()
 
     app.run(host='0.0.0.0', port=settings.API_PORT,
             threaded=True,

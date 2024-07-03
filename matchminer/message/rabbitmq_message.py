@@ -1,4 +1,5 @@
 import json
+import threading
 from datetime import time
 
 import pika
@@ -30,22 +31,23 @@ class RabbitMQMessage:
         self.reconnect_rabbitmq()
 
     def reconnect_rabbitmq(self, max_retries=5, retry_delay=5):
-        for attempt in range(max_retries):
+        attempts = 0
+        while attempts < max_retries:
             try:
                 # Connect to RabbitMQ receive queue
                 self.receive_connection = pika.BlockingConnection(pika.ConnectionParameters(
                     host=self.RABBITMQ_URI,
                     port=int(self.RABBITMQ_PORT),
-                    heartbeat=8 * 60,
-                    blocked_connection_timeout=8 * 60))
+                    heartbeat=15 * 60,
+                    blocked_connection_timeout=15 * 60))
                 self.receive_channel = self.receive_connection.channel()
 
                 # Connect to RabbitMQ send queue
                 self.send_connection = pika.BlockingConnection(pika.ConnectionParameters(
                     host=self.RABBITMQ_URI,
                     port=int(self.RABBITMQ_PORT),
-                    heartbeat=8 * 60,
-                    blocked_connection_timeout=8 * 60))
+                    heartbeat=15 * 60,
+                    blocked_connection_timeout=15 * 60))
                 self.send_channel = self.send_connection.channel()
 
                 # Declare the queue
@@ -54,11 +56,13 @@ class RabbitMQMessage:
                 print("Connected to RabbitMQ")
                 break
             except pika.exceptions.AMQPConnectionError as e:
-                print(f"Error connecting to RabbitMQ attempt: {attempt + 1}: {str(e)}")
+                print(f"Error connecting to RabbitMQ attempt: {attempts + 1}: {str(e)}")
                 time.sleep(retry_delay)
+                attempts += 1
             except ConnectionResetError as e:
-                print(f"XConnecting reset attempt: {attempt + 1}: {str(e)}")
+                print(f"Connecting reset attempt: {attempts + 1}: {str(e)}")
                 time.sleep(retry_delay)
+                attempts += 1
         else:
             print(f"Failed to connect to RabbitMQ after {max_retries} attempts")
 
@@ -67,15 +71,41 @@ class RabbitMQMessage:
         self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
         print(f" [x] Sent '{message}'")
 
+    def start_rabbit_consumer_thread(self):
+        consumer_thread = threading.Thread(target=self.start_rabbit_consumer)
+        consumer_thread.start()
 
-    def start_rabbit_consumer(self):
-        self.receive_channel.basic_qos(prefetch_count=1)  # Only one job at a time per consumer
-        self.receive_channel.basic_consume(queue=self.RECEIVE_QUEUE, on_message_callback=self.process_job)
+    def start_rabbit_consumer(self, max_retries=5, retry_delay=5):
+        attempts = 0
+        while attempts < max_retries:
+            try:
+                self.receive_channel.basic_qos(prefetch_count=1)  # Only one job at a time per consumer
+                self.receive_channel.basic_consume(queue=self.RECEIVE_QUEUE, on_message_callback=self.process_job)
 
-        # Start consuming
-        print('Waiting for jobs...')
-        self.receive_channel.start_consuming()
-
+                # Start consuming
+                print('Waiting for jobs...')
+                self.receive_channel.start_consuming()
+                break
+            except pika.exceptions.AMQPConnectionError as e:
+                print(f"Error in start consumer connecting to RabbitMQ attempt: {attempts + 1}: {str(e)}")
+                self.close_rabbit_connection()
+                self.reconnect_rabbitmq()
+                attempts += 1
+                time.sleep(retry_delay)
+                if attempts < max_retries:
+                    print("Restarting consumer...")
+                    self.start_rabbit_consumer(max_retries - attempts, retry_delay)
+            except ConnectionResetError as e:
+                print(f"Error in start consumer Connecting reset attempt: {attempts + 1}: {str(e)}")
+                self.close_rabbit_connection()
+                self.reconnect_rabbitmq()
+                attempts += 1
+                time.sleep(retry_delay)
+                if attempts < max_retries:
+                    print("Restarting consumer...")
+                    self.start_rabbit_consumer(max_retries - attempts, retry_delay)
+        else:
+            print(f"Failed in start consumer to connect to RabbitMQ after {max_retries} attempts")
 
     def process_job(self, ch, method, properties, body):
         # Process the job
