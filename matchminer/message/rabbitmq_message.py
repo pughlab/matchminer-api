@@ -1,6 +1,6 @@
 import json
 import threading
-from datetime import time
+from time import time
 
 import pika
 from matchengine.plugin_stub import DBSecrets
