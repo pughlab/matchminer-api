@@ -1,4 +1,5 @@
 import json
+import logging
 import threading
 import time
 
@@ -114,19 +115,23 @@ class RabbitMQMessage:
         if 'trial_internal_ids' in json_object:
             trial_internal_ids = json_object['trial_internal_ids']
             print("Received job:", trial_internal_ids)
+            logging.info(f"Received job: {trial_internal_ids}")
             print("running job")
             try:
                 run_ctims_matchengine_job(trial_internal_ids)
             except Exception as e:
                 error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {str(e)}"
+                logging.error(error_msg)
                 print(error_msg)
                 self.send_message(error_msg)
             else:
                 success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
+                logging.info(success_msg)
                 print(success_msg)
                 self.send_message(success_msg)
         else:
             error_msg = "Error: No trial_internal_ids in job"
+            logging.error(error_msg)
             print(error_msg)
             self.send_message(error_msg)
         # Acknowledge the job
