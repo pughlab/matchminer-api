@@ -125,15 +125,12 @@ class RabbitMQMessage:
                 success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
                 print(success_msg)
                 self.send_message(success_msg)
-            finally:
-                # Acknowledge the job
-                ch.basic_ack(delivery_tag=method.delivery_tag)
         else:
-            # Acknowledge the job
-            ch.basic_ack(delivery_tag=method.delivery_tag)
             error_msg = "Error: No trial_internal_ids in job"
             print(error_msg)
             self.send_message(error_msg)
+        # Acknowledge the job
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def close_rabbit_connection(self):
         print('Closing RabbitMQ connection...')
