@@ -113,6 +113,9 @@ class RabbitMQMessage:
         json_object = json.loads(body.decode())
 
         if 'trial_internal_ids' in json_object:
+            user_id = None
+            if 'user_id' in json_object:
+                user_id = json_object['user_id']
             trial_internal_ids = json_object['trial_internal_ids']
             print("Received job:", trial_internal_ids)
             logging.info(f"Received job: {trial_internal_ids}")
@@ -121,14 +124,29 @@ class RabbitMQMessage:
                 run_ctims_matchengine_job(trial_internal_ids)
             except Exception as e:
                 error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {str(e)}"
-                logging.error(error_msg)
-                print(error_msg)
-                self.send_message(error_msg)
+                py_error_dict = {
+                    "user_id": user_id,
+                    "trial_internal_ids": trial_internal_ids,
+                    "run_status": "fail",
+                    "run_message": error_msg
+                }
+                json_error_msg = json.dumps(py_error_dict)
+                logging.error(json_error_msg)
+                print(json_error_msg)
+                print(e)
+                self.send_message(json_error_msg)
             else:
                 success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
-                logging.info(success_msg)
-                print(success_msg)
-                self.send_message(success_msg)
+                py_success_dict = {
+                    "user_id": user_id,
+                    "trial_internal_ids": trial_internal_ids,
+                    "run_status": "success",
+                    "run_message": success_msg
+                }
+                json_success_msg = json.dumps(py_success_dict)
+                logging.info(json_success_msg)
+                print(json_success_msg)
+                self.send_message(json_success_msg)
         else:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
