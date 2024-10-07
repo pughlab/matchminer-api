@@ -1719,7 +1719,8 @@ ctims_trial_match_schema = {
     'ms_status': {'type': 'string', 'nullable': True},
     'trial_step_number': {'type': 'string', 'nullable': True},
     'trial_arm_number': {'type': 'string', 'nullable': True},
-    'match_type': {'type': 'string', 'nullable': True}
+    'match_type': {'type': 'string', 'nullable': True},
+    'query': {'type': 'json', 'nullable': True},
 }
 
 prioritizer_trial_match_schema = {
