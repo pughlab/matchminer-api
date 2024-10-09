@@ -1704,6 +1704,7 @@ ctims_trial_match_schema = {
     'her2_status': {'type': 'string'},
     'er_status': {'type': 'string'},
     'pr_status': {'type': 'string'},
+    'prior_treatment_agent': {'type': 'string'},
     'genomic_alteration': {'type': 'string', 'readonly': True},
     'true_hugo_symbol': {'type': 'string', 'nullable': True},
     'variant_category': {'type': 'string', 'nullable': True, 'allowed': ['MUTATION', 'CNV', 'SV']},
