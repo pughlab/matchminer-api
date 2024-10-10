@@ -117,13 +117,11 @@ class RabbitMQMessage:
             if 'user_id' in json_object:
                 user_id = json_object['user_id']
             trial_internal_ids = json_object['trial_internal_ids']
-            print("Received job:", trial_internal_ids)
             logging.info(f"Received job: {trial_internal_ids}")
-            print("running job")
             try:
                 run_ctims_matchengine_job(trial_internal_ids)
             except Exception as e:
-                error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {str(e)}"
+                error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {repr(e)}"
                 py_error_dict = {
                     "user_id": user_id,
                     "trial_internal_ids": trial_internal_ids,
