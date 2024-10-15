@@ -117,11 +117,52 @@ class RabbitMQMessage:
             if 'user_id' in json_object:
                 user_id = json_object['user_id']
             trial_internal_ids = json_object['trial_internal_ids']
-            print("Received job:", trial_internal_ids)
+            num_trials = len(trial_internal_ids)
             logging.info(f"Received job: {trial_internal_ids}")
-            print("running job")
+            logging.info("running job")
             try:
-                run_ctims_matchengine_job(trial_internal_ids)
+                result = run_ctims_matchengine_job(trial_internal_ids)
+                num_failed_trials = len(result.keys())
+                failed_trial_internal_ids = list(result.keys())
+                if(num_failed_trials == 0):
+                    # this is all success and no fail case
+                    success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
+                    py_success_dict = {
+                        "user_id": user_id,
+                        "trial_internal_ids": trial_internal_ids,
+                        "run_status": "success",
+                        "run_message": success_msg,
+                        "failed_trial_internal_ids": failed_trial_internal_ids,
+                    }
+                    json_success_msg = json.dumps(py_success_dict)
+                    logging.info(json_success_msg)
+                    self.send_message(json_success_msg)
+                if(num_failed_trials == num_trials):
+                    # this is all fail case
+                    error_msg = f"Error running job for trial internal ids {trial_internal_ids}"
+                    py_error_dict = {
+                        "user_id": user_id,
+                        "trial_internal_ids": trial_internal_ids,
+                        "run_status": "fail",
+                        "run_message": error_msg,
+                        "failed_trial_internal_ids": failed_trial_internal_ids,
+                    }
+                    json_error_msg = json.dumps(py_error_dict)
+                    logging.error(json_error_msg)
+                    self.send_message(json_error_msg)
+                if(num_failed_trials < num_trials and num_failed_trials >= 1):
+                    # this is partial success and partial fail case
+                    error_msg = f"Error running job for trial internal ids {trial_internal_ids}"
+                    py_error_dict = {
+                        "user_id": user_id,
+                        "trial_internal_ids": trial_internal_ids,
+                        "run_status": "partial_success",
+                        "run_message": error_msg,
+                        "failed_trial_internal_ids": failed_trial_internal_ids,
+                    }
+                    json_error_msg = json.dumps(py_error_dict)
+                    logging.error(json_error_msg)
+                    self.send_message(json_error_msg)
             except Exception as e:
                 error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {str(e)}"
                 py_error_dict = {
@@ -132,21 +173,7 @@ class RabbitMQMessage:
                 }
                 json_error_msg = json.dumps(py_error_dict)
                 logging.error(json_error_msg)
-                print(json_error_msg)
-                print(e)
                 self.send_message(json_error_msg)
-            else:
-                success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
-                py_success_dict = {
-                    "user_id": user_id,
-                    "trial_internal_ids": trial_internal_ids,
-                    "run_status": "success",
-                    "run_message": success_msg
-                }
-                json_success_msg = json.dumps(py_success_dict)
-                logging.info(json_success_msg)
-                print(json_success_msg)
-                self.send_message(json_success_msg)
         else:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
@@ -158,7 +185,6 @@ class RabbitMQMessage:
     def close_rabbit_connection(self):
         print('Closing RabbitMQ connection...')
         self.receive_connection.close()
-
 
     def __del__(self):
         self.close_rabbit_connection()

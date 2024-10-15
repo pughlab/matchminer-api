@@ -1413,6 +1413,7 @@ def run_ctims_matchengine_job(trial_internal_ids):
     installed_dir = sys.prefix
     plugin_dir = os.path.join(installed_dir, 'pugh-lab')
     file_dir = os.path.join(plugin_dir, 'config.json')
+    failed_protocol_nos = {}
 
     print("running match for ", trial_internal_ids)
     with PMatchEngine(
@@ -1423,12 +1424,13 @@ def run_ctims_matchengine_job(trial_internal_ids):
             db_name='matchminer',
             ignore_run_log=True,
             ignore_report_date=True,
-            protocol_nos=trial_internal_ids
+            protocol_nos=trial_internal_ids,
+            failed_protocol_nos={}
     ) as me:
         me.get_matches_for_all_trials()
-        me.update_all_matches()
+        if (len(me.failed_protocol_nos.keys()) > 0):
+            return me.failed_protocol_nos
+        else: 
+            me.update_all_matches()
 
-    resp = Response(response=json.dumps({"success": True}),
-                    status=200,
-                    mimetype="application/json")
-    return resp
+    return failed_protocol_nos
