@@ -130,33 +130,33 @@ class RabbitMQMessage:
                     py_success_dict = {
                         "user_id": user_id,
                         "trial_internal_ids": trial_internal_ids,
-                        "run_status": "success",
+                        "run_status": "SUCCESS",
                         "run_message": success_msg,
                         "failed_trial_internal_ids": failed_trial_internal_ids,
                     }
                     json_success_msg = json.dumps(py_success_dict)
                     logging.info(json_success_msg)
                     self.send_message(json_success_msg)
-                if(num_failed_trials == num_trials):
+                elif(num_failed_trials == num_trials):
                     # this is all fail case
                     error_msg = f"Error running job for trial internal ids {trial_internal_ids}"
                     py_error_dict = {
                         "user_id": user_id,
                         "trial_internal_ids": trial_internal_ids,
-                        "run_status": "fail",
+                        "run_status": "FAIL",
                         "run_message": error_msg,
                         "failed_trial_internal_ids": failed_trial_internal_ids,
                     }
                     json_error_msg = json.dumps(py_error_dict)
                     logging.error(json_error_msg)
                     self.send_message(json_error_msg)
-                if(num_failed_trials < num_trials and num_failed_trials >= 1):
+                else:
                     # this is partial success and partial fail case
                     error_msg = f"Error running job for trial internal ids {trial_internal_ids}"
                     py_error_dict = {
                         "user_id": user_id,
                         "trial_internal_ids": trial_internal_ids,
-                        "run_status": "partial_success",
+                        "run_status": "PARTIAL_SUCCESS",
                         "run_message": error_msg,
                         "failed_trial_internal_ids": failed_trial_internal_ids,
                     }
@@ -168,7 +168,7 @@ class RabbitMQMessage:
                 py_error_dict = {
                     "user_id": user_id,
                     "trial_internal_ids": trial_internal_ids,
-                    "run_status": "fail",
+                    "run_status": "FAIL",
                     "run_message": error_msg
                 }
                 json_error_msg = json.dumps(py_error_dict)
