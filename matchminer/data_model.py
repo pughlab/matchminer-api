@@ -1723,6 +1723,7 @@ ctims_trial_match_schema = {
     'match_type': {'type': 'string', 'nullable': True},
     'patient_match_values': {'type': 'string', 'nullable': True},
     'oncotree_primary_diagnosis_match_value': {'type':'string', 'nullable': True}
+    'query': {'type': 'json', 'nullable': True},
 }
 
 prioritizer_trial_match_schema = {
