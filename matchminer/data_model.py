@@ -1721,8 +1721,8 @@ ctims_trial_match_schema = {
     'trial_step_number': {'type': 'string', 'nullable': True},
     'trial_arm_number': {'type': 'string', 'nullable': True},
     'match_type': {'type': 'string', 'nullable': True},
-    'combined_data': {'type': 'string', 'nullable': True},
-    'oncotree_primary_diagnosis_match_only': {'type':'string', 'nullable': True}
+    'patient_match_values': {'type': 'string', 'nullable': True},
+    'oncotree_primary_diagnosis_match_only': {'type':'string', 'nullable': True},
 }
 
 prioritizer_trial_match_schema = {
