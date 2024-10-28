@@ -69,8 +69,12 @@ class RabbitMQMessage:
 
 
     def send_message(self, message):
-        self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
-        print(f" [x] Sent '{message}'")
+        try:
+            self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
+            print(f" [x] Sent '{message}'")
+        except Exception as e:
+            logging.error(f"Failed to sending message: {str(e)}")
+            raise e
 
     def start_rabbit_consumer_thread(self):
         consumer_thread = threading.Thread(target=self.start_rabbit_consumer)
