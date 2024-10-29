@@ -69,12 +69,8 @@ class RabbitMQMessage:
 
 
     def send_message(self, message):
-        try:
-            self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
-            print(f" [x] Sent '{message}'")
-        except Exception as e:
-            logging.error(f"Failed to sending message: {str(e)}")
-            raise e
+        self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
+        print(f" [x] Sent '{message}'")
 
     def start_rabbit_consumer_thread(self):
         consumer_thread = threading.Thread(target=self.start_rabbit_consumer)
@@ -124,6 +120,10 @@ class RabbitMQMessage:
             num_trials = len(trial_internal_ids)
             logging.info(f"Received job: {trial_internal_ids}")
             logging.info("running job")
+            py_message_dict = {
+                "user_id": user_id,
+                "trial_internal_ids": trial_internal_ids,
+            }
             try:
                 result = run_ctims_matchengine_job(trial_internal_ids)
                 num_failed_trials = len(result.keys())
@@ -131,55 +131,41 @@ class RabbitMQMessage:
                 if(num_failed_trials == 0):
                     # this is all success and no fail case
                     success_msg = f"Successfully ran job for trial internal ids {trial_internal_ids}"
-                    py_success_dict = {
-                        "user_id": user_id,
-                        "trial_internal_ids": trial_internal_ids,
+                    py_message_dict.update({
                         "run_status": "SUCCESS",
                         "run_message": success_msg,
                         "failed_trial_internal_ids": failed_trial_internal_ids,
-                    }
-                    json_success_msg = json.dumps(py_success_dict)
-                    logging.info(json_success_msg)
-                    self.send_message(json_success_msg)
+                    })
                 elif(num_failed_trials == num_trials):
                     # this is all fail case
                     error_msg = f"Error running job for trial internal ids {trial_internal_ids}"
-                    py_error_dict = {
-                        "user_id": user_id,
-                        "trial_internal_ids": trial_internal_ids,
+                    py_message_dict.update({
                         "run_status": "FAIL",
                         "run_message": error_msg,
                         "failed_trial_internal_ids": failed_trial_internal_ids,
-                    }
-                    json_error_msg = json.dumps(py_error_dict)
-                    logging.error(json_error_msg)
-                    self.send_message(json_error_msg)
+                    })
                 else:
                     # this is partial success and partial fail case
                     error_msg = f"Error running job for trial internal ids {trial_internal_ids}"
-                    py_error_dict = {
-                        "user_id": user_id,
-                        "trial_internal_ids": trial_internal_ids,
+                    py_message_dict.update({
                         "run_status": "PARTIAL_SUCCESS",
                         "run_message": error_msg,
                         "failed_trial_internal_ids": failed_trial_internal_ids,
-                    }
-                    json_error_msg = json.dumps(py_error_dict)
-                    logging.error(json_error_msg)
-                    self.send_message(json_error_msg)
+                    })
             except Exception as e:
                 error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {str(e)}"
-                py_error_dict = {
-                    "user_id": user_id,
-                    "trial_internal_ids": trial_internal_ids,
+                py_message_dict.update({
                     "run_status": "FAIL",
                     "run_message": error_msg
-                }
-                json_error_msg = json.dumps(py_error_dict)
+                })
+            finally:
+                json_error_msg = json.dumps(py_message_dict)
                 logging.error(json_error_msg)
-                self.send_message(json_error_msg)
-                # throw exception
-                # raise e
+                try:
+                    self.send_message(json_error_msg)
+                except Exception as e:
+                    logging.error(f"Error sending message to queue: {str(e)}")
+                    raise e
         else:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
