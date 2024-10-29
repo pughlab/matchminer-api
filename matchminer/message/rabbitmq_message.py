@@ -179,7 +179,7 @@ class RabbitMQMessage:
                 logging.error(json_error_msg)
                 self.send_message(json_error_msg)
                 # throw exception
-                raise e
+                # raise e
         else:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
