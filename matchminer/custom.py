@@ -729,6 +729,7 @@ def load_trial():
             genomic=None,
             clinical=None,
             trial=trial_list,
+            prior_treatment=None,
             db_name='matchminer',
             plugin_dir='pugh-lab/plugins',
             patient_format='json',
@@ -772,6 +773,7 @@ def load_clinical():
                 genomic=None,
                 clinical=clinical_file_path,
                 trial=None,
+                prior_treatment=None,
                 db_name='matchminer',
                 plugin_dir='pugh-lab/plugins',
                 patient_format='json',
@@ -816,6 +818,7 @@ def load_genomic():
                 genomic=genomic_file_path,
                 clinical=None,
                 trial=None,
+                prior_treatment=None,
                 db_name='matchminer',
                 plugin_dir='pugh-lab/plugins',
                 patient_format='json',
@@ -841,6 +844,60 @@ def load_genomic():
         else:
             response_data = {
                 'message': 'File type must be csv and key must be genomic_file'
+            }
+            failed_response = make_response(jsonify(response_data), 400)
+            return failed_response
+
+
+@blueprint.route('/api/load_prior_treatment', methods=['POST'])
+@auth_required
+def load_prior_treatment():
+    if request.files and 'prior_treatment_file' in request.files:
+        prior_treatment_file = request.files['prior_treatment_file']
+
+        #  check if the file type is csv
+        if prior_treatment_file.filename.endswith('.csv'):
+            # Use the Werkzeug utility function 'secure_filename' to ensure a safe filename
+            secure_path = secure_filename(prior_treatment_file.filename)
+
+            # create directory is not exist
+            if not os.path.exists('prior_treatment_uploads'):
+                os.makedirs('prior_treatment_uploads')
+
+            prior_treatment_file_path = os.path.join('prior_treatment_uploads', secure_path)
+            prior_treatment_file.save(prior_treatment_file_path)
+
+            args = Namespace(
+                drop=False,
+                prior_treatment=prior_treatment_file_path,
+                clinical=None,
+                genomic=None,
+                trial=None,
+                db_name='matchminer',
+                plugin_dir='pugh-lab/plugins',
+                patient_format='json',
+                upsert_fields='',
+            )
+            try:
+                load.load(args)
+            except RuntimeError as e:
+                # delete file
+                os.remove(prior_treatment_file_path)
+                response_data = {
+                    'message': str(e)
+                }
+                failed_response = make_response(jsonify(response_data), 400)
+                return failed_response
+
+            # delete file
+            os.remove(prior_treatment_file_path)
+            # Return a 204 No Content response
+            success_response = make_response('')
+            success_response.status_code = 204
+            return success_response
+        else:
+            response_data = {
+                'message': 'File type must be csv and key must be prior_treatment_file'
             }
             failed_response = make_response(jsonify(response_data), 400)
             return failed_response
