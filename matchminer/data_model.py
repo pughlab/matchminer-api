@@ -1725,6 +1725,8 @@ ctims_trial_match_schema = {
     'oncotree_primary_diagnosis_match_value': {'type': 'string', 'nullable': True},
     # 'query': {'type': 'json', 'nullable': True},
     'queries_used': {'type': 'string', 'nullable': True},
+    'nickname': {'type':'string', 'nullable': True},
+    'short_title': {'type':'string', 'nullable': True}
 }
 
 prioritizer_trial_match_schema = {
