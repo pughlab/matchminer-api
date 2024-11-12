@@ -1721,6 +1721,10 @@ ctims_trial_match_schema = {
     'trial_step_number': {'type': 'string', 'nullable': True},
     'trial_arm_number': {'type': 'string', 'nullable': True},
     'match_type': {'type': 'string', 'nullable': True},
+    'patient_match_values': {'type': 'string', 'nullable': True},
+    'oncotree_primary_diagnosis_match_value': {'type': 'string', 'nullable': True},
+    # 'query': {'type': 'json', 'nullable': True},
+    'queries_used': {'type': 'string', 'nullable': True},
     'nickname': {'type':'string', 'nullable': True},
     'short_title': {'type':'string', 'nullable': True}
 }
