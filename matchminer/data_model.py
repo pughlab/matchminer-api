@@ -1692,6 +1692,7 @@ trial_match_schema = {
 }
 
 ctims_trial_match_schema = {
+    'trial_id': {'type':'string'},
     'arm_description': {'type': 'string'},
     'study_id': {'type': 'string'},
     'patient_id': {'type': 'string'},
