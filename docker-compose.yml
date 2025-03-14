@@ -18,8 +18,32 @@ services:
     environment:
       - SECRETS_JSON=./secrets_json_prod.json
     networks:
-      - my-network
+      - ctims-network
+
+  mm_mongo_db:
+    container_name: mm_mongo_db
+    image: mongo:3.6.10
+    restart: on-failure
+    ports:
+      - "27020:27017"
+    networks:
+      - ctims-network
+    volumes:
+      - mm-mongo-db:/data/db
+
+  rabbitmq:
+    container_name: ctims-rabbitmq
+    image: rabbitmq:3-management
+    restart: on-failure
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - ctims-network 
+
+volumes:
+  mm-mongo-db:
 
 networks:
-  my-network:
+  ctims-network:
     external: true
