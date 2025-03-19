@@ -25,7 +25,7 @@ services:
     image: mongo:3.6.10
     restart: on-failure
     ports:
-      - "27020:27017"
+      - "27017:27017"
     networks:
       - ctims-network
     volumes:
