@@ -125,7 +125,11 @@ class RabbitMQMessage:
                 "trial_internal_ids": trial_internal_ids,
             }
             try:
-                result = run_ctims_matchengine_job(trial_internal_ids)
+                if 'nightly_run' in json_object and json_object['nightly_run']:
+                    # Run the job as a nightly run
+                    result = run_ctims_matchengine_job(trial_internal_ids, isNightlyRun=True)
+                else:
+                    result = run_ctims_matchengine_job(trial_internal_ids, isNightlyRun=False)
                 num_failed_trials = len(result.keys())
                 failed_trial_internal_ids = list(result.keys())
                 if(num_failed_trials == 0):
