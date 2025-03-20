@@ -1481,6 +1481,58 @@ def run_ctims_matchengine_job(trial_internal_ids):
             db_name='matchminer',
             ignore_run_log=True,
             ignore_report_date=True,
+            protocol_nos=trial_internal_ids,
+    ) as me:
+        me.get_matches_for_all_trials()
+        me.update_all_matches()
+        if (len(me.failed_protocol_nos.keys()) > 0):
+            failed_protocol_nos = me.failed_protocol_nos
+
+    return failed_protocol_nos
+
+
+@blueprint.route('/api/run_nightly_run', methods=['POST'])
+@nocache
+@auth_required
+def run_matchengine_nightly_run():
+    """
+    Runs MatchEngine to the provided configuration.
+    :return:
+    """
+
+    is_match_on_closed = False
+    is_match_on_deceased = False
+    # check the match run configuration
+    match_on_closed_header = request.headers.get('match_on_closed')
+    if match_on_closed_header and match_on_closed_header == 'true':
+        is_match_on_closed = True
+    match_on_deceased_header = request.headers.get('match_on_deceased')
+    if match_on_deceased_header and match_on_deceased_header == 'true':
+        is_match_on_deceased = True
+
+    # get the internal ids to run
+    if request.json and 'trial_internal_id_list' in request.json:
+        trial_internal_ids = request.json['trial_internal_id_list']
+    else:
+        response_data = {
+            'message': 'Missing required field: trial_internal_id_list'
+        }
+        failed_response = make_response(jsonify(response_data), 400)
+        return failed_response
+
+    installed_dir = sys.prefix
+    plugin_dir = os.path.join(installed_dir, 'pugh-lab')
+    file_dir = os.path.join(plugin_dir, 'config.json')
+    failed_protocol_nos = {}
+
+    with PMatchEngine(
+            plugin_dir=plugin_dir,
+            match_on_closed=is_match_on_closed,
+            match_on_deceased=is_match_on_deceased,
+            config=file_dir,
+            db_name='matchminer',
+            ignore_run_log=True,
+            ignore_report_date=True,
             protocol_nos=trial_internal_ids
     ) as me:
         me.get_matches_for_all_trials()
