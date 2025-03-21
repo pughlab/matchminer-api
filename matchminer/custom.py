@@ -1163,7 +1163,9 @@ def getLatestResultOfAllTrialsWithCounts():
     db = app.data.driver.db
 
     # get the collection
-    collection = db['trial_match']
+    with PMatchEngine() as me:
+        collection_name = me.trial_match_collection
+    collection = db[collection_name]
 
     # Query the collection
     pipeline = []
@@ -1475,8 +1477,6 @@ def run_ctims_matchengine_job(trial_internal_ids, isNightlyRun: bool):
     print("running match for ", trial_internal_ids)
     with PMatchEngine(
             plugin_dir=plugin_dir,
-            match_on_closed=True,
-            match_on_deceased=True,
             match_on_closed=not isNightlyRun,
             match_on_deceased=not isNightlyRun,
             config=file_dir,
@@ -1484,7 +1484,8 @@ def run_ctims_matchengine_job(trial_internal_ids, isNightlyRun: bool):
             ignore_run_log=True,
             ignore_report_date=True,
             protocol_nos=trial_internal_ids,
-            nightly_run=isNightlyRun
+            trial_match_collection='trial_match_nightly' if isNightlyRun else 'trial_match'
+
     ) as me:
         me.get_matches_for_all_trials()
         me.update_all_matches()
