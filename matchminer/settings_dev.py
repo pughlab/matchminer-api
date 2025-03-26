@@ -225,7 +225,7 @@ ctims_trial_match = {
 prioritizer_trial_match = {
     'schema': matchminer.data_model.prioritizer_trial_match_schema,
     'datasource': {
-        'source': 'trial_match'
+        'source': 'trial_match_nightly'
     },
     'allow_unknown': False,
     'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
