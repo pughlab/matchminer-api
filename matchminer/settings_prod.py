@@ -66,3 +66,14 @@ ctims_trial_match = {
     'allowed_write_roles': ["admin", "service", "oncologist", "cti"],
     'item_methods': ['GET']
 }
+
+ctims_viewer_trial_match = {
+    'schema': matchminer.data_model.ctims_trial_match_schema,
+    'datasource': {
+        'source': 'trial_match'
+    },
+    'allow_unknown': False,
+    'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
+    'allowed_write_roles': ["admin", "service", "oncologist", "cti"],
+    'item_methods': ['GET']
+}
