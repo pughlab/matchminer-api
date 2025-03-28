@@ -1163,7 +1163,14 @@ def getLatestResultOfAllTrialsWithCounts():
     db = app.data.driver.db
 
     # get the collection
-    with PMatchEngine() as me:
+    installed_dir = sys.prefix
+    plugin_dir = os.path.join(installed_dir, 'pugh-lab')
+    file_dir = os.path.join(plugin_dir, 'config.json')
+
+    with PMatchEngine(
+            plugin_dir=plugin_dir,
+            config=file_dir,
+            db_name='matchminer') as me:
         collection_name = me.trial_match_collection
     collection = db[collection_name]
 
