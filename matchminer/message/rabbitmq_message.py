@@ -14,6 +14,7 @@ class RabbitMQMessage:
         self.RABBITMQ_PORT = None
         self.SEND_QUEUE = None
         self.RECEIVE_QUEUE = None
+        self.NIGHTLY_MATCH_STATUS_QUEUE = None
         self.receive_connection = None
         self.receive_channel = None
         self.send_connection = None
