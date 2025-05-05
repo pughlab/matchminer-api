@@ -173,7 +173,7 @@ class RabbitMQMessage:
                 json_error_msg = json.dumps(py_message_dict)
                 logging.error(json_error_msg)
                 try:
-                    if json_object['nightly_run']:
+                    if 'nightly_run' in json_object and json_object['nightly_run']:
                         self.send_nightly_match_status_message(json_error_msg)
                     else:
                         self.send_message(json_error_msg)
@@ -184,7 +184,7 @@ class RabbitMQMessage:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
             print(error_msg)
-            if json_object['nightly_run']:
+            if 'nightly_run' in json_object and json_object['nightly_run']:
                 self.send_nightly_match_status_message(error_msg)
             else:
                 self.send_message(error_msg)
