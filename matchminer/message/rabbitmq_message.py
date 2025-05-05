@@ -29,6 +29,7 @@ class RabbitMQMessage:
         self.RABBITMQ_PORT = rabbitmq_options["RABBITMQ_PORT"]
         self.SEND_QUEUE = rabbitmq_options["SEND_QUEUE"]
         self.RECEIVE_QUEUE = rabbitmq_options["RECEIVE_QUEUE"]
+        self.NIGHTLY_MATCH_STATUS_QUEUE = rabbitmq_options["NIGHTLY_MATCH_STATUS_QUEUE"]
         self.reconnect_rabbitmq()
 
     def reconnect_rabbitmq(self, max_retries=5, retry_delay=5):
@@ -54,6 +55,7 @@ class RabbitMQMessage:
                 # Declare the queue
                 self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, durable=True)
                 self.send_channel.queue_declare(queue=self.SEND_QUEUE, durable=True)
+                self.send_channel.queue_declare(queue=self.NIGHTLY_MATCH_STATUS_QUEUE, durable=True)
                 print("Connected to RabbitMQ")
                 break
             except pika.exceptions.AMQPConnectionError as e:
@@ -70,6 +72,10 @@ class RabbitMQMessage:
 
     def send_message(self, message):
         self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
+        print(f" [x] Sent '{message}'")
+
+    def send_nightly_match_status_message(self, message):
+        self.send_channel.basic_publish(exchange="", routing_key=self.NIGHTLY_MATCH_STATUS_QUEUE, body=message)
         print(f" [x] Sent '{message}'")
 
     def start_rabbit_consumer_thread(self):
@@ -166,7 +172,10 @@ class RabbitMQMessage:
                 json_error_msg = json.dumps(py_message_dict)
                 logging.error(json_error_msg)
                 try:
-                    self.send_message(json_error_msg)
+                    if json_object['nightly_run']:
+                        self.send_nightly_match_status_message(json_error_msg)
+                    else:
+                        self.send_message(json_error_msg)
                 except Exception as e:
                     logging.error(f"Error sending message to queue: {str(e)}")
                     raise e
@@ -174,7 +183,10 @@ class RabbitMQMessage:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
             print(error_msg)
-            self.send_message(error_msg)
+            if json_object['nightly_run']:
+                self.send_nightly_match_status_message(error_msg)
+            else:
+                self.send_message(error_msg)
         # Acknowledge the job
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
