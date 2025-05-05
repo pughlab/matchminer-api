@@ -118,6 +118,7 @@ class RabbitMQMessage:
     def process_job(self, ch, method, properties, body):
         # Process the job
         json_object = json.loads(body.decode())
+        isNightlyRun = 'nightly_run' in json_object and json_object['nightly_run']
 
         if 'trial_internal_ids' in json_object:
             user_id = None
@@ -130,9 +131,10 @@ class RabbitMQMessage:
             py_message_dict = {
                 "user_id": user_id,
                 "trial_internal_ids": trial_internal_ids,
+                "is_nightly_run": isNightlyRun,
             }
             try:
-                if 'nightly_run' in json_object and json_object['nightly_run']:
+                if isNightlyRun:
                     # Run the job as a nightly run
                     result = run_ctims_matchengine_job(trial_internal_ids, isNightlyRun=True)
                 else:
@@ -173,9 +175,9 @@ class RabbitMQMessage:
                 json_error_msg = json.dumps(py_message_dict)
                 logging.error(json_error_msg)
                 try:
-                    if 'nightly_run' in json_object and json_object['nightly_run']:
-                        self.send_nightly_match_status_message(json_error_msg)
-                    else:
+                    # always send the message to PMatch controller
+                    self.send_nightly_match_status_message(json_error_msg)
+                    if not isNightlyRun:
                         self.send_message(json_error_msg)
                 except Exception as e:
                     logging.error(f"Error sending message to queue: {str(e)}")
@@ -184,7 +186,7 @@ class RabbitMQMessage:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
             print(error_msg)
-            if 'nightly_run' in json_object and json_object['nightly_run']:
+            if isNightlyRun:
                 self.send_nightly_match_status_message(error_msg)
             else:
                 self.send_message(error_msg)
