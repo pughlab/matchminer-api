@@ -118,7 +118,7 @@ class RabbitMQMessage:
     def process_job(self, ch, method, properties, body):
         # Process the job
         json_object = json.loads(body.decode())
-        isNightlyRun = 'nightly_run' in json_object and json_object['nightly_run']
+        isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
 
         if 'trial_internal_ids' in json_object:
             user_id = None
