@@ -7,6 +7,7 @@ import pika
 from matchengine.plugin_stub import DBSecrets
 from matchminer.custom import run_ctims_matchengine_job
 
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
 
 class RabbitMQMessage:
     def __init__(self):
@@ -57,27 +58,27 @@ class RabbitMQMessage:
                 self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, durable=True)
                 self.send_channel.queue_declare(queue=self.SEND_QUEUE, durable=True)
                 self.send_channel.queue_declare(queue=self.NIGHTLY_MATCH_STATUS_QUEUE, durable=True)
-                print("Connected to RabbitMQ")
+                logging.info("Connected to RabbitMQ")
                 break
             except pika.exceptions.AMQPConnectionError as e:
-                print(f"Error connecting to RabbitMQ attempt: {attempts + 1}: {str(e)}")
+                logging.error(f"Error connecting to RabbitMQ attempt: {attempts + 1}: {str(e)}")
                 time.sleep(retry_delay)
                 attempts += 1
             except ConnectionResetError as e:
-                print(f"Connecting reset attempt: {attempts + 1}: {str(e)}")
+                logging.error(f"Connecting reset attempt: {attempts + 1}: {str(e)}")
                 time.sleep(retry_delay)
                 attempts += 1
         else:
-            print(f"Failed to connect to RabbitMQ after {max_retries} attempts")
+            logging.warning(f"Failed to connect to RabbitMQ after {max_retries} attempts")
 
 
     def send_message(self, message):
         self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
-        print(f" [x] Sent '{message}'")
+        logging.info(f" [x] Sent '{message}'")
 
     def send_nightly_match_status_message(self, message):
         self.send_channel.basic_publish(exchange="", routing_key=self.NIGHTLY_MATCH_STATUS_QUEUE, body=message)
-        print(f" [x] Sent '{message}'")
+        logging.info(f" [x] Sent '{message}'")
 
     def start_rabbit_consumer_thread(self):
         consumer_thread = threading.Thread(target=self.start_rabbit_consumer)
@@ -91,34 +92,35 @@ class RabbitMQMessage:
                 self.receive_channel.basic_consume(queue=self.RECEIVE_QUEUE, on_message_callback=self.process_job)
 
                 # Start consuming
-                print('Waiting for jobs...')
+                logging.info('Waiting for jobs...')
                 self.receive_channel.start_consuming()
                 break
             except pika.exceptions.AMQPConnectionError as e:
-                print(f"Error in start consumer connecting to RabbitMQ attempt: {attempts + 1}: {str(e)}")
+                logging.error(f"Error in start consumer connecting to RabbitMQ attempt: {attempts + 1}: {str(e)}")
                 self.close_rabbit_connection()
                 self.reconnect_rabbitmq()
                 attempts += 1
                 time.sleep(retry_delay)
                 if attempts < max_retries:
-                    print("Restarting consumer...")
+                    logging.info("Restarting consumer...")
                     self.start_rabbit_consumer(max_retries - attempts, retry_delay)
             except ConnectionResetError as e:
-                print(f"Error in start consumer Connecting reset attempt: {attempts + 1}: {str(e)}")
+                logging.error(f"Error in start consumer Connecting reset attempt: {attempts + 1}: {str(e)}")
                 self.close_rabbit_connection()
                 self.reconnect_rabbitmq()
                 attempts += 1
                 time.sleep(retry_delay)
                 if attempts < max_retries:
-                    print("Restarting consumer...")
+                    logging.info("Restarting consumer...")
                     self.start_rabbit_consumer(max_retries - attempts, retry_delay)
         else:
-            print(f"Failed in start consumer to connect to RabbitMQ after {max_retries} attempts")
+            logging.warning(f"Failed in start consumer to connect to RabbitMQ after {max_retries} attempts")
 
     def process_job(self, ch, method, properties, body):
         # Process the job
         json_object = json.loads(body.decode())
         isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
+        job_name = json_object.get('job_name', 'Unknown Job')
 
         if 'trial_internal_ids' in json_object:
             user_id = None
@@ -132,6 +134,7 @@ class RabbitMQMessage:
                 "user_id": user_id,
                 "trial_internal_ids": trial_internal_ids,
                 "is_nightly_run": isNightlyRun,
+                'job_name': job_name,
             }
             try:
                 if isNightlyRun:
@@ -185,7 +188,6 @@ class RabbitMQMessage:
         else:
             error_msg = "Error: No trial_internal_ids in job"
             logging.error(error_msg)
-            print(error_msg)
             if isNightlyRun:
                 self.send_nightly_match_status_message(error_msg)
             else:
@@ -194,7 +196,7 @@ class RabbitMQMessage:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def close_rabbit_connection(self):
-        print('Closing RabbitMQ connection...')
+        logging.info('Closing RabbitMQ connection...')
         self.receive_connection.close()
 
     def __del__(self):
