@@ -12,7 +12,8 @@ from matchminer import settings, security
 from matchminer.events import register_hooks
 from matchminer.validation import ConsentValidatorEve
 from matchminer.components.oncore.oncore_app import oncore_blueprint
-from matchminer.message.rabbitmq_message import RabbitMQMessage
+from matchminer.message.rabbitmq_app import rabbitmq_blueprint
+from matchminer.message.rabbitmq_app import RabbitMQFactory
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
 
@@ -41,6 +42,7 @@ app.config['SAML_PATH'] = os.path.join(cur_dir, 'saml')
 app.config['SECRET_KEY'] = SAML_SECRET
 app.register_blueprint(blueprint)
 app.register_blueprint(oncore_blueprint)
+app.register_blueprint(rabbitmq_blueprint)
 app.on_fetched_resource += on_fetched_resource
 register_hooks(app)
 
@@ -107,7 +109,7 @@ def run_server(args):
     #
     # atexit.register(close_rabbit_connection)
 
-    rabbitmq_message = RabbitMQMessage()
+    rabbitmq_message = RabbitMQFactory.get_instance()
 
     # consumer_thread = threading.Thread(target=rabbitmq_message.start_rabbit_consumer)
     # consumer_thread.start()

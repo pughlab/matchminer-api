@@ -199,3 +199,27 @@ class RabbitMQMessage:
 
     def __del__(self):
         self.close_rabbit_connection()
+
+    def health_check(self):
+        try:
+            # Check if connections and channels are open
+            if (self.receive_connection is None or self.send_connection is None or
+                self.receive_channel is None or self.send_channel is None or
+                self.receive_connection.is_closed or self.send_connection.is_closed or
+                self.receive_channel.is_closed or self.send_channel.is_closed):
+                logging.warning("RabbitMQ connection/channel closed. Attempting to reconnect.")
+                self.reconnect_rabbitmq()
+                # After reconnect, check again
+                if (self.receive_connection.is_closed or self.send_connection.is_closed or
+                    self.receive_channel.is_closed or self.send_channel.is_closed):
+                    return {"status": False, "message": "RabbitMQ connection/channel could not be re-established."}
+
+            # Try a passive queue declare to check connectivity
+            self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, passive=True)
+            self.send_channel.queue_declare(queue=self.SEND_QUEUE, passive=True)
+            self.send_channel.queue_declare(queue=self.NIGHTLY_MATCH_STATUS_QUEUE, passive=True)
+            return {"status": True, "message": "RabbitMQ connection and queues are healthy."}
+        except Exception as e:
+            error_msg = f"RabbitMQ health check failed: {str(e)}"
+            logging.error(error_msg)
+            return {"status": False, "message": error_msg}
