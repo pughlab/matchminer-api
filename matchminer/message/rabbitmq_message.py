@@ -298,11 +298,9 @@ class RabbitMQMessage:
         print('Closing RabbitMQ connection...')
 
         self.should_stop = True
-        if self.receive_channel and not self.receive_channel.is_closed:
-            try:
-                self.receive_channel.stop_consuming()
-            except Exception as e:
-                logging.warning(f"Error stopping consumer: {e}")
+        if self.consumer_thread and self.consumer_thread.is_alive():
+            # stop consuming and add timeout to ensure it exits
+            self.consumer_thread.join(timeout=30)
 
         # Consistent cleanup logic with error handling
         self._close_connections()
