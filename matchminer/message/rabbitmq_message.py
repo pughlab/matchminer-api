@@ -21,19 +21,19 @@ class RabbitMQMessage:
         self.receive_channel = None
         self.send_connection = None
         self.send_channel = None
-        
+
         # track the consumer thread for health monitoring
         self.consumer_thread = None
         # track if we need to shutdown the consumer, so we know to retry or not
-        self.should_stop = False          
+        self.should_stop = False
         # track if consumer is actively listening (not just connected), for retry logic
-        self.is_consuming = False      
-        
+        self.is_consuming = False
+
         # track when consumer last processed a message
-        self.last_heartbeat = datetime.now() 
+        self.last_heartbeat = datetime.now()
         # count processed messages for monitoring
-        self.message_count = 0                
-        
+        self.message_count = 0
+
         self.initalize_rabbitmq()
 
     def initalize_rabbitmq(self):
@@ -53,7 +53,7 @@ class RabbitMQMessage:
             try:
                 # Close existing connections first
                 self._close_connections()
-                
+
                 # Connect to RabbitMQ receive queue with heartbeat of 5 minutes
                 self.receive_connection = pika.BlockingConnection(pika.ConnectionParameters(
                     host=self.RABBITMQ_URI,
@@ -81,7 +81,7 @@ class RabbitMQMessage:
                 print(f"Error connecting to RabbitMQ attempt {attempts + 1}: {str(e)}")
                 time.sleep(retry_delay)
                 attempts += 1
-        
+
         print(f"Failed to connect to RabbitMQ after {max_retries} attempts")
         return False
 
@@ -92,7 +92,7 @@ class RabbitMQMessage:
                 self.receive_connection.close()
         except Exception as e:
             logging.warning(f"Error closing receive connection: {e}")
-        
+
         try:
             if self.send_connection and not self.send_connection.is_closed:
                 self.send_connection.close()
@@ -134,7 +134,7 @@ class RabbitMQMessage:
         # start the retry start consumer thread
         self.consumer_thread = threading.Thread(target=self._consumer_with_monitoring, daemon=True)
         self.consumer_thread.start()
-        
+
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -168,7 +168,7 @@ class RabbitMQMessage:
                         attempts += 1
                         time.sleep(retry_delay)
                         continue
-                
+
                 self.receive_channel.basic_qos(prefetch_count=1)
                 self.receive_channel.basic_consume(queue=self.RECEIVE_QUEUE, on_message_callback=self.process_job)
 
@@ -177,29 +177,29 @@ class RabbitMQMessage:
                 # update state
                 self.is_consuming = True
                 self.last_heartbeat = datetime.now()
-                
+
                 # blocks and wait to consume, this returns when consumer is stopped or error
                 self.receive_channel.start_consuming()
 
                 # Indicates consumer has stopped (gracefully or due to error)
                 self.is_consuming = False
                 break
-                
-            except (pika.exceptions.AMQPConnectionError, ConnectionResetError, 
+
+            except (pika.exceptions.AMQPConnectionError, ConnectionResetError,
                     pika.exceptions.StreamLostError, pika.exceptions.ChannelWrongStateError) as e:
                 print(f"Connection error in consumer attempt {attempts + 1}: {str(e)}")
                 self.is_consuming = False
                 self._close_connections()
                 attempts += 1
                 time.sleep(retry_delay)
-                
+
             except Exception as e:
                 logging.error(f"Unexpected error in consumer: {e}")
                 self.is_consuming = False
                 self._close_connections()
                 attempts += 1
                 time.sleep(retry_delay)
-        
+
         if attempts >= max_retries:
             logging.error(f"Consumer failed after {max_retries} attempts - will restart automatically")
 
@@ -208,7 +208,7 @@ class RabbitMQMessage:
             # update state on job received
             self.last_heartbeat = datetime.now()
             self.message_count += 1
-            
+
             # Process the job
             json_object = json.loads(body.decode())
             isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
@@ -284,7 +284,7 @@ class RabbitMQMessage:
                         self.send_message(error_msg)
                 except Exception as e:
                     logging.error(f"Error sending error message: {e}")
-                    
+
         except Exception as e:
             logging.error(f"Critical error processing job: {e}")
         finally:
