@@ -1357,6 +1357,7 @@ def run_ctims_matchengine():
             ignore_run_log=True,
             ignore_report_date=True,
             protocol_nos=trial_internal_ids,
+            num_workers=3
     ) as me:
         me.get_matches_for_all_trials()
         me.update_all_matches()
@@ -1481,7 +1482,8 @@ def run_ctims_matchengine_job(trial_internal_ids, isNightlyRun: bool):
             ignore_run_log=True,
             ignore_report_date=True,
             protocol_nos=trial_internal_ids,
-            trial_match_collection='trial_match_nightly' if isNightlyRun else 'trial_match'
+            trial_match_collection='trial_match_nightly' if isNightlyRun else 'trial_match',
+            num_workers=3
 
     ) as me:
         me.get_matches_for_all_trials()
