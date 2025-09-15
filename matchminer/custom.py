@@ -629,11 +629,15 @@ def get_trial_by_protocol():
 
     return resp
 
-@blueprint.route('/api/delete_trial_by_internal_id', methods=['DELETE'])
+@blueprint.route('/api/delete_trial_by_internal_id', methods=['POST'])
 @nocache
 @auth_required
 def delete_trial_by_internal_id():
-    trial_internal_id = request.args.get("trial_internal_id")
+    request_data = request.get_json()
+    trial_internal_id = None
+    
+    if request_data and 'params' in request_data:
+        trial_internal_id = request_data['params'].get('trial_internal_id')
 
     if trial_internal_id is not None:
         database.get_collection('trial').delete_many({"trial_internal_id": trial_internal_id})
