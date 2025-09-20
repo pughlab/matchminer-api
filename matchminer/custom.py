@@ -629,11 +629,15 @@ def get_trial_by_protocol():
 
     return resp
 
-@blueprint.route('/api/delete_trial_by_internal_id', methods=['DELETE'])
+@blueprint.route('/api/delete_trial_by_internal_id', methods=['POST'])
 @nocache
 @auth_required
 def delete_trial_by_internal_id():
-    trial_internal_id = request.args.get("trial_internal_id")
+    request_data = request.get_json()
+    trial_internal_id = None
+    
+    if request_data and 'params' in request_data:
+        trial_internal_id = request_data['params'].get('trial_internal_id')
 
     if trial_internal_id is not None:
         database.get_collection('trial').delete_many({"trial_internal_id": trial_internal_id})
@@ -1357,6 +1361,7 @@ def run_ctims_matchengine():
             ignore_run_log=True,
             ignore_report_date=True,
             protocol_nos=trial_internal_ids,
+            num_workers=3
     ) as me:
         me.get_matches_for_all_trials()
         me.update_all_matches()
@@ -1481,7 +1486,8 @@ def run_ctims_matchengine_job(trial_internal_ids, isNightlyRun: bool):
             ignore_run_log=True,
             ignore_report_date=True,
             protocol_nos=trial_internal_ids,
-            trial_match_collection='trial_match_nightly' if isNightlyRun else 'trial_match'
+            trial_match_collection='trial_match_nightly' if isNightlyRun else 'trial_match',
+            num_workers=3
 
     ) as me:
         me.get_matches_for_all_trials()
