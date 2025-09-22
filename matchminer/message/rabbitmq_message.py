@@ -212,6 +212,7 @@ class RabbitMQMessage:
             # Process the job
             json_object = json.loads(body.decode())
             isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
+            job_name = json_object.get('job_name', 'Unknown Job')
 
             if 'trial_internal_ids' in json_object:
                 user_id = None
@@ -225,6 +226,7 @@ class RabbitMQMessage:
                     "user_id": user_id,
                     "trial_internal_ids": trial_internal_ids,
                     "is_nightly_run": isNightlyRun,
+                    "job_name": job_name,
                 }
                 try:
                     if isNightlyRun:
