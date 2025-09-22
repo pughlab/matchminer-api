@@ -315,12 +315,8 @@ class RabbitMQMessage:
                 self.receive_channel is None or self.send_channel is None or
                 self.receive_connection.is_closed or self.send_connection.is_closed or
                 self.receive_channel.is_closed or self.send_channel.is_closed):
-                logging.warning("RabbitMQ connection/channel closed. Attempting to reconnect.")
-                self.reconnect_rabbitmq()
-                # After reconnect, check again
-                if (self.receive_connection.is_closed or self.send_connection.is_closed or
-                    self.receive_channel.is_closed or self.send_channel.is_closed):
-                    return {"status": False, "message": "RabbitMQ connection/channel could not be re-established."}
+                logging.warning("RabbitMQ connection/channel closed.")
+                return {"status": False, "message": "RabbitMQ connection/channel closed."}
 
             # Try a passive queue declare to check connectivity
             self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, passive=True)
