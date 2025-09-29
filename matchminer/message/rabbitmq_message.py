@@ -9,6 +9,7 @@ import pika
 from matchengine.plugin_stub import DBSecrets
 from matchminer.custom import run_ctims_matchengine_job
 
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
 
 class RabbitMQMessage:
     def __init__(self):
@@ -74,15 +75,15 @@ class RabbitMQMessage:
                 self.receive_channel.queue_declare(queue=self.RECEIVE_QUEUE, durable=True)
                 self.send_channel.queue_declare(queue=self.SEND_QUEUE, durable=True)
                 self.send_channel.queue_declare(queue=self.NIGHTLY_MATCH_STATUS_QUEUE, durable=True)
-                print("Connected to RabbitMQ")
+                logging.info("Connected to RabbitMQ")
                 return True
             except Exception as e:
                 # catch all exception instead of specific ones, so all exception goes to retry
-                print(f"Error connecting to RabbitMQ attempt {attempts + 1}: {str(e)}")
+                logging.error(f"Error connecting to RabbitMQ attempt {attempts + 1}: {str(e)}")
                 time.sleep(retry_delay)
                 attempts += 1
 
-        print(f"Failed to connect to RabbitMQ after {max_retries} attempts")
+        logging.warning(f"Failed to connect to RabbitMQ after {max_retries} attempts")
         return False
 
     # helper function to close the actual connection with try-catch
@@ -91,26 +92,26 @@ class RabbitMQMessage:
             if self.receive_connection and not self.receive_connection.is_closed:
                 self.receive_connection.close()
         except Exception as e:
-            logging.warning(f"Error closing receive connection: {e}")
+            logging.error(f"Error closing receive connection: {e}")
 
         try:
             if self.send_connection and not self.send_connection.is_closed:
                 self.send_connection.close()
         except Exception as e:
-            logging.warning(f"Error closing send connection: {e}")
+            logging.error(f"Error closing send connection: {e}")
 
     # Send message with a retry if can't publish, just retry once
     def send_message(self, message):
         try:
             self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
-            print(f" [x] Sent '{message}'")
+            logging.info(f" [x] Sent '{message}'")
         except Exception as e:
             logging.error(f"Error sending message: {e}")
             # Try to reconnect and resend once
             if self.reconnect_rabbitmq():
                 try:
                     self.send_channel.basic_publish(exchange="", routing_key=self.SEND_QUEUE, body=message)
-                    print(f" [x] Sent '{message}' after reconnection")
+                    logging.info(f" [x] Sent '{message}' after reconnection")
                 except Exception as e2:
                     logging.error(f"Failed to send message after reconnection: {e2}")
                     # Don't retry infinitely
@@ -119,13 +120,13 @@ class RabbitMQMessage:
     def send_nightly_match_status_message(self, message):
         try:
             self.send_channel.basic_publish(exchange="", routing_key=self.NIGHTLY_MATCH_STATUS_QUEUE, body=message)
-            print(f" [x] Sent nightly status '{message}'")
+            logging.info(f" [x] Sent nightly status '{message}'")
         except Exception as e:
             logging.error(f"Error sending nightly status message: {e}")
             if self.reconnect_rabbitmq():
                 try:
                     self.send_channel.basic_publish(exchange="", routing_key=self.NIGHTLY_MATCH_STATUS_QUEUE, body=message)
-                    print(f" [x] Sent nightly status '{message}' after reconnection")
+                    logging.info(f" [x] Sent nightly status '{message}' after reconnection")
                 except Exception as e2:
                     logging.error(f"Failed to send nightly status message after reconnection: {e2}")
 
@@ -141,7 +142,7 @@ class RabbitMQMessage:
 
     # clean shutdown without losing messages on system shutdowns
     def _signal_handler(self, signum, frame):
-        print(f"Received signal {signum}, shutting down consumer...")
+        logging.info(f"Received signal {signum}, shutting down consumer...")
         self.should_stop = True
         if self.receive_channel and not self.receive_channel.is_closed:
             self.receive_channel.stop_consuming()
@@ -152,7 +153,7 @@ class RabbitMQMessage:
             try:
                 self.start_rabbit_consumer()
                 if not self.should_stop:  # Only log if not intentionally stopped
-                    logging.error("Consumer exited unexpectedly, restarting in 10 seconds...")
+                    logging.warning("Consumer exited unexpectedly, restarting in 10 seconds...")
                     time.sleep(10)
             except Exception as e:
                 logging.error(f"Unexpected error in consumer monitoring: {e}")
@@ -172,7 +173,7 @@ class RabbitMQMessage:
                 self.receive_channel.basic_qos(prefetch_count=1)
                 self.receive_channel.basic_consume(queue=self.RECEIVE_QUEUE, on_message_callback=self.process_job)
 
-                print('Waiting for jobs...')
+                logging.info('Waiting for jobs...')
 
                 # update state
                 self.is_consuming = True
@@ -187,7 +188,7 @@ class RabbitMQMessage:
 
             except (pika.exceptions.AMQPConnectionError, ConnectionResetError,
                     pika.exceptions.StreamLostError, pika.exceptions.ChannelWrongStateError) as e:
-                print(f"Connection error in consumer attempt {attempts + 1}: {str(e)}")
+                logging.error(f"Connection error in consumer attempt {attempts + 1}: {str(e)}")
                 self.is_consuming = False
                 self._close_connections()
                 attempts += 1
@@ -201,7 +202,7 @@ class RabbitMQMessage:
                 time.sleep(retry_delay)
 
         if attempts >= max_retries:
-            logging.error(f"Consumer failed after {max_retries} attempts - will restart automatically")
+            logging.warning(f"Consumer failed after {max_retries} attempts - will restart automatically")
 
     def process_job(self, ch, method, properties, body):
         try:
@@ -212,6 +213,7 @@ class RabbitMQMessage:
             # Process the job
             json_object = json.loads(body.decode())
             isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
+            job_name = json_object.get('job_name', 'Unknown Job')
 
             if 'trial_internal_ids' in json_object:
                 user_id = None
@@ -225,6 +227,7 @@ class RabbitMQMessage:
                     "user_id": user_id,
                     "trial_internal_ids": trial_internal_ids,
                     "is_nightly_run": isNightlyRun,
+                    "job_name": job_name,
                 }
                 try:
                     if isNightlyRun:
@@ -276,7 +279,6 @@ class RabbitMQMessage:
             else:
                 error_msg = "Error: No trial_internal_ids in job"
                 logging.error(error_msg)
-                print(error_msg)
                 try:
                     if isNightlyRun:
                         self.send_nightly_match_status_message(error_msg)
@@ -295,7 +297,7 @@ class RabbitMQMessage:
                 logging.error(f"Error acknowledging message: {e}")
 
     def close_rabbit_connection(self):
-        print('Closing RabbitMQ connection...')
+        logging.info('Closing RabbitMQ connection...')
 
         self.should_stop = True
         if self.consumer_thread and self.consumer_thread.is_alive():
