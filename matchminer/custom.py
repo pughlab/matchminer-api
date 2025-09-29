@@ -1332,6 +1332,50 @@ def getLatestResultOfAllTrialsWithCounts2():
 
     return resp
 
+@blueprint.route('/api/ctims_viewer_study_summary', methods=['GET'])
+@auth_required
+@nocache
+def getStudySummary():
+    db = app.data.driver.db
+
+    clinical_collection = db['clinical']
+    genomic_collection = db['genomic']
+    prior_treatment_collection = db['prior_treatment']
+
+    def count_by_study_id(collection):
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$STUDY_ID",
+                    "unique_patients": {"$addToSet": "$PATIENT_ID"},
+                    "unique_samples": {"$addToSet": "$SAMPLE_ID"},
+                    "total_count": {"$sum": 1}
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "patient_count": {"$size": "$unique_patients"},
+                    "sample_count": {"$size": "$unique_samples"},
+                    "total_count": 1
+                }
+            },
+            {"$sort": {"patient_count": -1}}
+        ]
+        return list(collection.aggregate(pipeline))
+
+
+    clinical_counts = count_by_study_id(clinical_collection)
+    genomic_counts = count_by_study_id(genomic_collection)
+    prior_treatment_counts = count_by_study_id(prior_treatment_collection)
+
+    return jsonify({
+        "clinical": clinical_counts,
+        "genomic": genomic_counts,
+        "prior_treatment": prior_treatment_counts
+    })
+
+
 @blueprint.route('/api/run_ctims_matchengine', methods=['GET'])
 @nocache
 @auth_required
