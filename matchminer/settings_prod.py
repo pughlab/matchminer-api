@@ -73,7 +73,6 @@ ctims_viewer_trial_match = {
         'source': 'trial_match'
     },
     'allow_unknown': False,
-    'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
-    'allowed_write_roles': ["admin", "service", "oncologist", "cti"],
+    'allowed_read_roles': ["admin", "service"],
     'item_methods': ['GET']
 }
