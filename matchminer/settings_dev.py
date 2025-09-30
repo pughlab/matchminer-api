@@ -222,6 +222,16 @@ ctims_trial_match = {
     'item_methods': ['GET']
 }
 
+ctims_viewer_trial_match = {
+    'schema': matchminer.data_model.ctims_trial_match_schema,
+    'datasource': {
+        'source': 'trial_match'
+    },
+    'allow_unknown': False,
+    'allowed_read_roles': ["admin", "service"],
+    'item_methods': ['GET']
+}
+
 prioritizer_trial_match = {
     'schema': matchminer.data_model.prioritizer_trial_match_schema,
     'datasource': {
@@ -283,6 +293,7 @@ DOMAIN = {
     'public_stats': public_stats,
     'trial_match': trial_match,
     'ctims_trial_match': ctims_trial_match,
+    'ctims_viewer_trial_match': ctims_viewer_trial_match,
     'prioritizer_trial_match': prioritizer_trial_match,
     'negative_genomic': negative_genomic,
     'patient_view': patient_view,
