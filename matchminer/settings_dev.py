@@ -214,7 +214,8 @@ trial_match = {
 ctims_trial_match = {
     'schema': matchminer.data_model.ctims_trial_match_schema,
     'datasource': {
-        'source': 'trial_match'
+        'source': 'trial_match',
+        'filter': {'study_id': {'$ne': 'EPIC'}}
     },
     'allow_unknown': False,
     'allowed_read_roles': ["admin", "service", "oncologist", "cti"],
