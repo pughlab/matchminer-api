@@ -1,6 +1,7 @@
 """ This module contains the error-related constants and classes. """
 
-from collections import defaultdict, namedtuple, MutableMapping
+from collections import defaultdict, namedtuple
+from collections.abc import MutableMapping
 from copy import copy
 from .utils import compare_paths_lt, quote_string
 
