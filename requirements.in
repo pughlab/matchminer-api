@@ -26,7 +26,7 @@ dnspython==1.16.0
 # motor is not used in the API, but version is pinned to avoid lib dependency issues
 motor==2.0.0
 gunicorn==20.0.4
-pytz==2017.2
+pytz==2022.1
 importlib-metadata==4.10.1
 lxml==4.7.1
 typing-extensions==4.0.1
