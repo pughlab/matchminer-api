@@ -92,7 +92,7 @@ nose==1.3.7
     # via
     #   -r requirements.in
     #   oncotreenx
-numpy==1.23.3
+numpy==1.24.0
     # via pandas
 oauth2client==2.0.2
     # via -r requirements.in
@@ -100,7 +100,7 @@ oncotreenx @ git+https://github.com/ethansiegl/oncotreenx.git
     # via -r requirements.in
 packaging==21.3
     # via build
-pandas==1.1.5
+pandas==1.3.5
     # via
     #   -r requirements.in
     #   matchengine-v2
@@ -183,7 +183,7 @@ wheel==0.37.1
     # via pip-tools
 wincrypto @ git+https://github.com/crappycrypto/wincrypto.git@7b87ba7080a1e594e6164b82a331d03cf256905d
     # via -r requirements.in
-xmlsec==1.3.13
+xmlsec==1.3.14
     # via python3-saml
 zipp==3.8.1
     # via importlib-metadata
