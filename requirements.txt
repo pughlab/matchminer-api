@@ -83,7 +83,7 @@ motor==2.0.0
     # via
     #   -r requirements.in
     #   matchengine-v2
-networkx==2.3
+networkx==2.6.3
     # via
     #   -r requirements.in
     #   matchengine-v2
