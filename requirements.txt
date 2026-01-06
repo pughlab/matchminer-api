@@ -16,7 +16,7 @@ certifi==2022.9.24
     # via requests
 chardet==3.0.4
     # via requests
-click==7.1.2
+click==8.0.4
     # via
     #   flask
     #   pip-tools
@@ -36,7 +36,7 @@ eve-swagger==0.2.0
     # via -r requirements.in
 events==0.3
     # via eve
-flask==1.1.4
+flask==2.0.3
     # via
     #   -r requirements.in
     #   eve
@@ -58,9 +58,9 @@ importlib-metadata==4.10.1
     # via -r requirements.in
 isodate==0.6.1
     # via python3-saml
-itsdangerous==1.1.0
+itsdangerous==2.0.1
     # via flask
-jinja2==2.10.1
+jinja2==3.0.3
     # via
     #   -r requirements.in
     #   flask
@@ -70,7 +70,7 @@ lxml==4.7.1
     # via
     #   -r requirements.in
     #   xmlsec
-markupsafe==2.0.1
+markupsafe==2.1.1
     # via
     #   -r requirements.in
     #   jinja2
@@ -177,7 +177,7 @@ websockets==10.1
     # via
     #   -r requirements.in
     #   mattermostdriver
-werkzeug==1.0.1
+werkzeug==2.0.3
     # via flask
 wheel==0.37.1
     # via pip-tools
