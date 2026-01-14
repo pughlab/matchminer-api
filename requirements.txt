@@ -8,7 +8,7 @@ bson==0.5.10
     # via matchengine-v2
 build==0.8.0
     # via pip-tools
-cerberus==1.2
+cerberus==1.3.5
     # via
     #   -r requirements.in
     #   eve
@@ -16,7 +16,7 @@ certifi==2022.9.24
     # via requests
 chardet==3.0.4
     # via requests
-click==7.1.2
+click==8.0.4
     # via
     #   flask
     #   pip-tools
@@ -36,13 +36,13 @@ eve-swagger==0.2.0
     # via -r requirements.in
 events==0.3
     # via eve
-flask==1.1.4
+flask==2.0.3
     # via
     #   -r requirements.in
     #   eve
     #   flask-cors
     #   flask-pymongo
-flask-cors==2.1.2
+flask-cors==3.0.10
     # via -r requirements.in
 flask-pymongo==2.2.0
     # via -r requirements.in
@@ -58,19 +58,19 @@ importlib-metadata==4.10.1
     # via -r requirements.in
 isodate==0.6.1
     # via python3-saml
-itsdangerous==1.1.0
+itsdangerous==2.0.1
     # via flask
-jinja2==2.10.1
+jinja2==3.0.3
     # via
     #   -r requirements.in
     #   flask
 logging-formatter-anticrlf==1.2
     # via -r requirements.in
-lxml==4.7.1
+lxml==4.9.3
     # via
     #   -r requirements.in
     #   xmlsec
-markupsafe==2.0.1
+markupsafe==2.1.1
     # via
     #   -r requirements.in
     #   jinja2
@@ -83,7 +83,7 @@ motor==2.0.0
     # via
     #   -r requirements.in
     #   matchengine-v2
-networkx==2.3
+networkx==2.6.3
     # via
     #   -r requirements.in
     #   matchengine-v2
@@ -92,7 +92,7 @@ nose==1.3.7
     # via
     #   -r requirements.in
     #   oncotreenx
-numpy==1.23.3
+numpy==1.24.0
     # via pandas
 oauth2client==2.0.2
     # via -r requirements.in
@@ -100,7 +100,7 @@ oncotreenx @ git+https://github.com/ethansiegl/oncotreenx.git
     # via -r requirements.in
 packaging==21.3
     # via build
-pandas==1.1.5
+pandas==1.3.5
     # via
     #   -r requirements.in
     #   matchengine-v2
@@ -137,7 +137,7 @@ python-dateutil==2.8.0
     #   pandas
 python3-saml==1.8.0
     # via -r requirements.in
-pytz==2017.2
+pytz==2022.1
     # via
     #   -r requirements.in
     #   pandas
@@ -177,13 +177,13 @@ websockets==10.1
     # via
     #   -r requirements.in
     #   mattermostdriver
-werkzeug==1.0.1
+werkzeug==2.0.3
     # via flask
 wheel==0.37.1
     # via pip-tools
 wincrypto @ git+https://github.com/crappycrypto/wincrypto.git@7b87ba7080a1e594e6164b82a331d03cf256905d
     # via -r requirements.in
-xmlsec==1.3.13
+xmlsec==1.3.14
     # via python3-saml
 zipp==3.8.1
     # via importlib-metadata

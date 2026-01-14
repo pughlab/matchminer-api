@@ -1,4 +1,4 @@
-from collections import Mapping
+from collections.abc import Mapping
 
 from .platform import _int_types, _str_type
 

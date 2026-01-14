@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.10
 
 # install ubuntu packages.
 RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && apt-get install -y \
@@ -17,6 +17,12 @@ RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN --mount=type=ssh pip install git+ssh://git@github.com/pughlab/ctims-matchminer-engine.git@dev
 
 RUN pip install -r requirements.txt
+
+# Force upgrade networkx for Python 3.10 compatibility (oncotreenx may install old version)
+RUN pip install --upgrade 'networkx==2.6.3'
+
+# Reinstall lxml and xmlsec together to ensure same libxml2 version
+RUN pip uninstall -y lxml xmlsec && pip install lxml==4.9.3 xmlsec==1.3.14
 
 # Hack to work around https://github.com/py-bson/bson/issues/82
 RUN pip --no-input uninstall --yes bson

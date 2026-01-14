@@ -1,4 +1,4 @@
-from collections import Callable, Hashable, Iterable, Mapping, MutableMapping
+from collections.abc import Callable, Hashable, Iterable, Mapping, MutableMapping
 from copy import copy
 import json
 
