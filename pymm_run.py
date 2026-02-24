@@ -15,7 +15,20 @@ from matchminer.components.oncore.oncore_app import oncore_blueprint
 from matchminer.message.rabbitmq_app import rabbitmq_blueprint
 from matchminer.message.rabbitmq_app import RabbitMQFactory
 
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s', )
+LOG_FORMAT = '[%(asctime)s] [%(levelname)s] %(message)s'
+logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
+
+def force_timestamped_logging():
+    # Set formatter for all handlers of root, Flask, Eve, and Werkzeug loggers
+    loggers = [logging.getLogger(),
+               logging.getLogger("flask.app"),
+               logging.getLogger("werkzeug"),
+               logging.getLogger("eve")]
+    formatter = logging.Formatter(LOG_FORMAT)
+    for logger in loggers:
+        for handler in logger.handlers:
+            handler.setFormatter(formatter)
+
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 static_dir = os.path.join(cur_dir, 'static')
@@ -37,6 +50,9 @@ else:
               static_url_path='',
               auth=security.TokenAuth,
               validator=ConsentValidatorEve)
+
+# Force timestamped logging after app creation
+force_timestamped_logging()
 
 app.config['SAML_PATH'] = os.path.join(cur_dir, 'saml')
 app.config['SECRET_KEY'] = SAML_SECRET

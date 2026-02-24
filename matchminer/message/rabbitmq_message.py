@@ -210,6 +210,12 @@ class RabbitMQMessage:
             self.last_heartbeat = datetime.now()
             self.message_count += 1
 
+            # Acknowledge the job immediately after receiving
+            try:
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+            except Exception as e:
+                logging.error(f"Error acknowledging message: {e}")
+
             # Process the job
             json_object = json.loads(body.decode())
             isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
@@ -289,12 +295,6 @@ class RabbitMQMessage:
 
         except Exception as e:
             logging.error(f"Critical error processing job: {e}")
-        finally:
-            # Acknowledge the job
-            try:
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-            except Exception as e:
-                logging.error(f"Error acknowledging message: {e}")
 
     def close_rabbit_connection(self):
         logging.info('Closing RabbitMQ connection...')
