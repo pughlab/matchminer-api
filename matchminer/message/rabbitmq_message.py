@@ -205,26 +205,23 @@ class RabbitMQMessage:
             logging.warning(f"Consumer failed after {max_retries} attempts - will restart automatically")
 
     def process_job(self, ch, method, properties, body):
-        try:
-            # update state on job received
-            self.last_heartbeat = datetime.now()
-            self.message_count += 1
+        # update state on job received
+        self.last_heartbeat = datetime.now()
+        self.message_count += 1
 
-            # Acknowledge the job immediately after receiving
+        # Offload job processing to a worker thread
+        def worker_job():
             try:
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-            except Exception as e:
-                logging.error(f"Error acknowledging message: {e}")
+                json_object = json.loads(body.decode())
+            except json.JSONDecodeError as e:
+                logging.error(f"Error decoding JSON: {e}")
+                return
 
-            # Process the job
-            json_object = json.loads(body.decode())
             isNightlyRun = 'is_nightly_run' in json_object and json_object['is_nightly_run']
             job_name = json_object.get('job_name', 'Unknown Job')
 
             if 'trial_internal_ids' in json_object:
-                user_id = None
-                if 'user_id' in json_object:
-                    user_id = json_object['user_id']
+                user_id = json_object.get('user_id')
                 trial_internal_ids = json_object['trial_internal_ids']
                 num_trials = len(trial_internal_ids)
                 logging.info(f"Received job: {trial_internal_ids}")
@@ -240,6 +237,15 @@ class RabbitMQMessage:
                         result = run_ctims_matchengine_job(trial_internal_ids, isNightlyRun=True)
                     else:
                         result = run_ctims_matchengine_job(trial_internal_ids, isNightlyRun=False)
+
+                    # Thread-safe message acknowledgment
+                    def ack_callback():
+                        try:
+                            ch.basic_ack(delivery_tag=method.delivery_tag)
+                        except Exception as e:
+                            logging.error(f"Error acknowledging message: {e}")
+                    self.receive_connection.add_callback_threadsafe(ack_callback)
+
                     num_failed_trials = len(result.keys())
                     failed_trial_internal_ids = list(result.keys())
                     if(num_failed_trials == 0):
@@ -267,6 +273,14 @@ class RabbitMQMessage:
                             "failed_trial_internal_ids": failed_trial_internal_ids,
                         })
                 except Exception as e:
+                    # Thread-safe message acknowledgment
+                    def nack_callback():
+                        try:
+                            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+                        except Exception as e:
+                            logging.error(f"Error acknowledging message: {e}")
+                    self.receive_connection.add_callback_threadsafe(nack_callback)
+
                     error_msg = f"Error running job for trial internal ids {trial_internal_ids}: {str(e)}"
                     py_message_dict.update({
                         "run_status": "FAIL",
@@ -293,8 +307,7 @@ class RabbitMQMessage:
                 except Exception as e:
                     logging.error(f"Error sending error message: {e}")
 
-        except Exception as e:
-            logging.error(f"Critical error processing job: {e}")
+        threading.Thread(target=worker_job, daemon=True).start()
 
     def close_rabbit_connection(self):
         logging.info('Closing RabbitMQ connection...')
